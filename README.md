@@ -1,1 +1,7 @@
-# APP-Project-OBD2-scanner-application
+# OBD2-Scanner-Frontend
+
+A new Flutter project.
+
+## Getting Started
+
+FlutterFlow projects are built to run on the Flutter _stable_ release.
