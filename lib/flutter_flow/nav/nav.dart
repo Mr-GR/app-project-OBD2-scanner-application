@@ -75,12 +75,16 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
       debugLogDiagnostics: true,
       refreshListenable: appStateNotifier,
       navigatorKey: appNavigatorKey,
-      errorBuilder: (context, state) => appStateNotifier.loggedIn ? () : (),
+      errorBuilder: (context, state) => appStateNotifier.loggedIn
+          ? Scaffold(body: Center(child: Text('Error occurred')))
+          : Scaffold(body: Center(child: Text('Not logged in'))),
       routes: [
         FFRoute(
           name: '_initialize',
           path: '/',
-          builder: (context, _) => appStateNotifier.loggedIn ? () : (),
+          builder: (context, _) => appStateNotifier.loggedIn 
+          ? Scaffold(body: Center(child: Text('Logged in'))) 
+          : Scaffold(body: Center(child: Text('Logged in'))) ,
         ),
         FFRoute(
           name: AuthForgotPasswordWidget.routeName,
