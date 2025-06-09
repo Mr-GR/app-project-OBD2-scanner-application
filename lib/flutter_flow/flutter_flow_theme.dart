@@ -132,6 +132,8 @@ abstract class FlutterFlowTheme {
   TextStyle get bodySmall => typography.bodySmall;
 
   Typography get typography => ThemeTypography(this);
+
+  get lineColor => null;
 }
 
 class LightModeTheme extends FlutterFlowTheme {
