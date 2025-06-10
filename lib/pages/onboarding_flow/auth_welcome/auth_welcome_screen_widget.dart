@@ -1,4 +1,7 @@
 import 'package:o_b_d2_scanner_frontend/index.dart';
+import 'package:o_b_d2_scanner_frontend/pages/onboarding_flow/auth_create/auth_create_model.dart';
+import 'package:o_b_d2_scanner_frontend/pages/onboarding_flow/auth_create/auth_create_widget.dart';
+import 'package:o_b_d2_scanner_frontend/pages/onboarding_flow/auth_login/auth_login_widget.dart';
 
 import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -38,7 +41,7 @@ class _AuthWelcomeScreenWidgetState extends State<AuthWelcomeScreenWidget>
       'body': 'Connect your OBD2 for quicker insights.',
     },
     {
-      'title': 'Enter Information',
+      'title': 'Enter your Information',
       'body': 'If you do not have an OBD2 scanner you can still ask AI.',
     },
   ];
@@ -211,7 +214,7 @@ class _AuthWelcomeScreenWidgetState extends State<AuthWelcomeScreenWidget>
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const AuthForgotPasswordWidget()),
+                          MaterialPageRoute(builder: (context) => const AuthLoginWidget()),
                         );
                       },
                       text: 'Login',
@@ -233,15 +236,20 @@ class _AuthWelcomeScreenWidgetState extends State<AuthWelcomeScreenWidget>
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const AuthForgotPasswordWidget()),
+                          MaterialPageRoute(builder: (context) => const AuthCreateWidget()),
                         );
                       },
                       text: 'Create an Account',
                       options: FFButtonOptions(
                         width: double.infinity,
                         height: 60,
-                        color: FlutterFlowTheme.of(context).secondaryBackground,
-                        textStyle: FlutterFlowTheme.of(context).titleLarge,
+                        color: FlutterFlowTheme.of(context).primaryText,
+                        textStyle: FlutterFlowTheme.of(context)
+                            .titleMedium
+                            .copyWith(
+                              color: FlutterFlowTheme.of(context)
+                                  .secondaryBackground,
+                            ),
                         borderRadius: BorderRadius.circular(50),
                       ),
                     ),

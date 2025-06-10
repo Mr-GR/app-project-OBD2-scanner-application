@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:go_router/go_router.dart';
+import 'package:o_b_d2_scanner_frontend/pages/onboarding_flow/auth_forgot_password/auth_forgot_password_widget.dart';
 
 import '/flutter_flow/flutter_flow_theme.dart';
 import 'flutter_flow/flutter_flow_util.dart';
@@ -89,7 +90,6 @@ GoRouter createRouter() {
         path: '/authWelcomeScreen',
         builder: (context, state) => const AuthWelcomeScreenWidget(),
       ),
-      // Add more routes here as needed
     ],
   );
 }
