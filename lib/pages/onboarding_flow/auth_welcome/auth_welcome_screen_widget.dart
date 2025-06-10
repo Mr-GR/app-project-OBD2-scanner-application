@@ -46,19 +46,15 @@ class _AuthWelcomeScreenWidgetState extends State<AuthWelcomeScreenWidget>
 
   final List<String> carImages = [
     'https://cdn.pixabay.com/photo/2017/03/27/14/56/car-2179220_960_720.jpg',
-    'https://cdn.pixabay.com/photo/2012/05/29/00/43/car-49278_960_720.jpg',
     'https://cdn.pixabay.com/photo/2015/01/19/13/51/car-604019_960_720.jpg',
     'https://images.unsplash.com/photo-1503736334956-4c8f8e92946d',
-    'https://cdn.pixabay.com/photo/2017/03/27/14/56/car-2179220_960_720.jpg',
-    'https://cdn.pixabay.com/photo/2012/05/29/00/43/car-49278_960_720.jpg',
     'https://cdn.pixabay.com/photo/2015/01/19/13/51/car-604019_960_720.jpg',
     'https://images.unsplash.com/photo-1503736334956-4c8f8e92946d',
-    'https://cdn.pixabay.com/photo/2017/03/27/14/56/car-2179220_960_720.jpg',
-    'https://cdn.pixabay.com/photo/2012/05/29/00/43/car-49278_960_720.jpg',
     'https://cdn.pixabay.com/photo/2015/01/19/13/51/car-604019_960_720.jpg',
     'https://images.unsplash.com/photo-1503736334956-4c8f8e92946d',
+    'https://cdn.pixabay.com/photo/2015/01/19/13/51/car-604019_960_720.jpg',
     'https://cdn.pixabay.com/photo/2017/03/27/14/56/car-2179220_960_720.jpg',
-    'https://cdn.pixabay.com/photo/2012/05/29/00/43/car-49278_960_720.jpg',
+    'https://cdn.pixabay.com/photo/2017/03/27/14/56/car-2179220_960_720.jpg',
     'https://cdn.pixabay.com/photo/2015/01/19/13/51/car-604019_960_720.jpg',
     'https://images.unsplash.com/photo-1503736334956-4c8f8e92946d',
   ];
