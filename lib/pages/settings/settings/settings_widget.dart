@@ -108,7 +108,7 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                 mainAxisSize: MainAxisSize.max,
                 children: [
                   Text(
-                    'Gitty Upper 69',
+                    'Manny Guevara',
                     style: FlutterFlowTheme.of(context).bodyMedium.override(
                           font: GoogleFonts.inter(
                             fontWeight: FontWeight.bold,
@@ -126,7 +126,7 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                   Padding(
                     padding: EdgeInsetsDirectional.fromSTEB(4.0, 0.0, 0.0, 0.0),
                     child: Text(
-                      'gitty@upper.com',
+                      'manny@gmail.com',
                       style: FlutterFlowTheme.of(context).bodyMedium.override(
                             font: GoogleFonts.inter(
                               fontWeight: FlutterFlowTheme.of(context)
