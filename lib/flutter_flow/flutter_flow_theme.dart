@@ -1,5 +1,3 @@
-// ignore_for_file: overridden_fields, annotate_overrides
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -133,7 +131,7 @@ abstract class FlutterFlowTheme {
 
   Typography get typography => ThemeTypography(this);
 
-  get lineColor => null;
+  get lineColor => const Color(0xFFE0E3E7);
 }
 
 class LightModeTheme extends FlutterFlowTheme {

@@ -1,4 +1,7 @@
 import 'package:o_b_d2_scanner_frontend/flutter_flow/flutter_flow_icon_button.dart';
+import 'package:o_b_d2_scanner_frontend/pages/manual_configuration/manual_configuration_widget.dart';
+import 'package:o_b_d2_scanner_frontend/pages/obd2_bluetooth_configuration/obd2_bluetooth_configuration_widget.dart';
+// import 'package:o_b_d2_scanner_frontend/pages/settings/settings/settings_widget.dart';
 
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -9,8 +12,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'home_page_model.dart';
 export 'home_page_model.dart';
 
-/// Create a page with 6 cards in the middle a button close to the buttom and
-/// a settings button on the top left corner
 class HomePageWidget extends StatefulWidget {
   const HomePageWidget({super.key});
 
@@ -25,6 +26,7 @@ class _HomePageWidgetState extends State<HomePageWidget> {
   late HomePageModel _model;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
+  int _selectedIndex = 0;
 
   @override
   void initState() {
@@ -35,8 +37,14 @@ class _HomePageWidgetState extends State<HomePageWidget> {
   @override
   void dispose() {
     _model.dispose();
-
     super.dispose();
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+    // Add logic if you want tabs to navigate or switch views
   }
 
   @override
@@ -96,12 +104,6 @@ class _HomePageWidgetState extends State<HomePageWidget> {
                                     .fontStyle,
                               ),
                               letterSpacing: 0.0,
-                              fontWeight: FlutterFlowTheme.of(context)
-                                  .headlineMedium
-                                  .fontWeight,
-                              fontStyle: FlutterFlowTheme.of(context)
-                                  .headlineMedium
-                                  .fontStyle,
                             ),
                       ),
                     ],
@@ -122,106 +124,116 @@ class _HomePageWidgetState extends State<HomePageWidget> {
                     shrinkWrap: true,
                     scrollDirection: Axis.vertical,
                     children: [
-                      Container(
-                        width: 100.0,
-                        height: 100.0,
-                        decoration: BoxDecoration(
-                          color:
+                      GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const ManualConfigurationWidget(),
+                              ),
+                            );
+                        },
+                        child: Container(
+                          width: 100.0,
+                          height: 100.0,
+                          decoration: BoxDecoration(
+                            color:
                               FlutterFlowTheme.of(context).secondaryBackground,
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                        child: Padding(
-                          padding: EdgeInsets.all(12.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.max,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              FaIcon(
-                                FontAwesomeIcons.bars,
-                                color: Colors.black,
-                                size: 32.0,
-                              ),
-                              Padding(
-                                padding: EdgeInsetsDirectional.fromSTEB(
-                                    0.0, 8.0, 0.0, 0.0),
-                                child: Text(
-                                  'Manual Setup',
-                                  style: FlutterFlowTheme.of(context)
-                                      .bodyLarge
-                                      .override(
-                                        font: GoogleFonts.inter(
-                                          fontWeight:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyLarge
-                                                  .fontWeight,
-                                          fontStyle:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyLarge
-                                                  .fontStyle,
-                                        ),
-                                        letterSpacing: 0.0,
-                                        fontWeight: FlutterFlowTheme.of(context)
-                                            .bodyLarge
-                                            .fontWeight,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .bodyLarge
-                                            .fontStyle,
-                                      ),
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.all(12.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.max,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                FaIcon(
+                                  FontAwesomeIcons.bars,
+                                  color: Colors.black,
+                                  size: 32.0,
                                 ),
-                              ),
-                            ],
+                                Padding(
+                                  padding: EdgeInsetsDirectional.fromSTEB(
+                                      0.0, 8.0, 0.0, 0.0),
+                                  child: Text(
+                                    'Manual Setup',
+                                    style: FlutterFlowTheme.of(context)
+                                        .bodyLarge
+                                        .override(
+                                          font: GoogleFonts.inter(
+                                            fontWeight:
+                                                FlutterFlowTheme.of(context)
+                                                    .bodyLarge
+                                                    .fontWeight,
+                                            fontStyle:
+                                                FlutterFlowTheme.of(context)
+                                                    .bodyLarge
+                                                    .fontStyle,
+                                          ),
+                                          letterSpacing: 0.0,
+                                        ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                      Container(
-                        width: 100.0,
-                        height: 100.0,
-                        decoration: BoxDecoration(
-                          color:
-                              FlutterFlowTheme.of(context).secondaryBackground,
-                          borderRadius: BorderRadius.circular(12.0),
-                          shape: BoxShape.rectangle,
-                        ),
-                        child: Padding(
-                          padding: EdgeInsets.all(12.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.max,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              FaIcon(
-                                FontAwesomeIcons.screwdriver,
-                                color: Colors.black,
-                                size: 32.0,
-                              ),
-                              Padding(
-                                padding: EdgeInsetsDirectional.fromSTEB(
-                                    0.0, 8.0, 0.0, 0.0),
-                                child: Text(
-                                  'OBD2 Scanner',
-                                  style: FlutterFlowTheme.of(context)
-                                      .bodyLarge
-                                      .override(
-                                        font: GoogleFonts.inter(
-                                          fontWeight:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyLarge
-                                                  .fontWeight,
-                                          fontStyle:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyLarge
-                                                  .fontStyle,
-                                        ),
-                                        letterSpacing: 0.0,
-                                        fontWeight: FlutterFlowTheme.of(context)
-                                            .bodyLarge
-                                            .fontWeight,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .bodyLarge
-                                            .fontStyle,
-                                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const Obd2BluetoothConfigurationWidget(),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          width: 100.0,
+                          height: 100.0,
+                          decoration: BoxDecoration(
+                            color:
+                                FlutterFlowTheme.of(context).secondaryBackground,
+                            borderRadius: BorderRadius.circular(12.0),
+                            shape: BoxShape.rectangle,
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.all(12.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.max,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                FaIcon(
+                                  FontAwesomeIcons.screwdriver,
+                                  color: Colors.black,
+                                  size: 32.0,
                                 ),
-                              ),
-                            ],
+                                Padding(
+                                  padding: EdgeInsetsDirectional.fromSTEB(
+                                      0.0, 8.0, 0.0, 0.0),
+                                  child: Text(
+                                    'OBD2 Scanner',
+                                    style: FlutterFlowTheme.of(context)
+                                        .bodyLarge
+                                        .override(
+                                          font: GoogleFonts.inter(
+                                            fontWeight:
+                                                FlutterFlowTheme.of(context)
+                                                    .bodyLarge
+                                                    .fontWeight,
+                                            fontStyle:
+                                                FlutterFlowTheme.of(context)
+                                                    .bodyLarge
+                                                    .fontStyle,
+                                          ),
+                                          letterSpacing: 0.0,
+                                        ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -257,12 +269,6 @@ class _HomePageWidgetState extends State<HomePageWidget> {
                                 color: FlutterFlowTheme.of(context)
                                     .secondaryBackground,
                                 letterSpacing: 0.0,
-                                fontWeight: FlutterFlowTheme.of(context)
-                                    .titleSmall
-                                    .fontWeight,
-                                fontStyle: FlutterFlowTheme.of(context)
-                                    .titleSmall
-                                    .fontStyle,
                               ),
                       elevation: 2.0,
                       borderRadius: BorderRadius.circular(12.0),
@@ -272,6 +278,26 @@ class _HomePageWidgetState extends State<HomePageWidget> {
               ],
             ),
           ),
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped,
+          selectedItemColor: Colors.black,
+          unselectedItemColor: Colors.grey,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.settings),
+              label: 'Settings',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+          ],
         ),
       ),
     );
