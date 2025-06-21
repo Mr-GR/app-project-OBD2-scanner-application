@@ -1,18 +1,8 @@
-import 'package:o_b_d2_scanner_frontend/index.dart';
-import 'package:o_b_d2_scanner_frontend/pages/onboarding_flow/auth_create/auth_create_model.dart';
-import 'package:o_b_d2_scanner_frontend/pages/onboarding_flow/auth_create/auth_create_widget.dart';
 import 'package:o_b_d2_scanner_frontend/pages/onboarding_flow/auth_login/auth_login_widget.dart';
-
-import '/flutter_flow/flutter_flow_animations.dart';
+import 'package:o_b_d2_scanner_frontend/pages/onboarding_flow/auth_create/auth_create_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
-import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
-import 'package:smooth_page_indicator/smooth_page_indicator.dart'
-    as smooth_page_indicator;
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AuthWelcomeScreenWidget extends StatefulWidget {
   const AuthWelcomeScreenWidget({super.key});
@@ -28,13 +18,12 @@ class AuthWelcomeScreenWidget extends StatefulWidget {
 class _AuthWelcomeScreenWidgetState extends State<AuthWelcomeScreenWidget>
     with TickerProviderStateMixin {
   final scaffoldKey = GlobalKey<ScaffoldState>();
-  final animationsMap = <String, AnimationInfo>{};
   late PageController pageViewController;
 
   final List<Map<String, String>> welcomePages = [
     {
       'title': 'Welcome to Auto Fix',
-      'body': 'Use Auto Fix to identify your vehicle erros and resolve them with AI guidance.',
+      'body': 'Use Auto Fix to identify your vehicle errors and resolve them with AI guidance.',
     },
     {
       'title': 'Scan with your OBD2',
@@ -45,7 +34,6 @@ class _AuthWelcomeScreenWidgetState extends State<AuthWelcomeScreenWidget>
       'body': 'If you do not have an OBD2 scanner you can still ask AI.',
     },
   ];
-
 
   final List<String> carImages = [
     'https://cdn.pixabay.com/photo/2017/03/27/14/56/car-2179220_960_720.jpg',
@@ -66,30 +54,6 @@ class _AuthWelcomeScreenWidgetState extends State<AuthWelcomeScreenWidget>
   void initState() {
     super.initState();
     pageViewController = PageController(initialPage: 0);
-
-    animationsMap.addAll({
-      'containerOnPageLoadAnimation': AnimationInfo(
-        loop: true,
-        reverse: true,
-        trigger: AnimationTrigger.onPageLoad,
-        effectsBuilder: () => [
-          MoveEffect(
-            curve: Curves.easeOut,
-            delay: 0.0.ms,
-            duration: 3200.0.ms,
-            begin: Offset(0.0, -80.0),
-            end: Offset(0.0, 0.0),
-          ),
-          MoveEffect(
-            curve: Curves.easeInOut,
-            delay: 3200.0.ms,
-            duration: 3200.0.ms,
-            begin: Offset(0.0, 0.0),
-            end: Offset(0.0, -80.0),
-          ),
-        ],
-      ),
-    });
   }
 
   @override
@@ -119,14 +83,13 @@ class _AuthWelcomeScreenWidgetState extends State<AuthWelcomeScreenWidget>
                     decoration: BoxDecoration(
                       color: FlutterFlowTheme.of(context).secondaryBackground,
                     ),
-                    child: MasonryGridView.builder(
+                    child: GridView.builder(
                       physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          SliverSimpleGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 3,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
                       ),
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
                       itemCount: carImages.length,
                       itemBuilder: (context, index) {
                         return ClipRRect(
@@ -140,8 +103,7 @@ class _AuthWelcomeScreenWidgetState extends State<AuthWelcomeScreenWidget>
                         );
                       },
                     ),
-                  ).animateOnPageLoad(
-                      animationsMap['containerOnPageLoadAnimation']!),
+                  ),
                 ),
               ],
             ),
@@ -189,24 +151,22 @@ class _AuthWelcomeScreenWidgetState extends State<AuthWelcomeScreenWidget>
                     ),
                     Padding(
                       padding: const EdgeInsets.only(top: 10),
-                      child: smooth_page_indicator.SmoothPageIndicator(
-                        controller: pageViewController,
-                        count: welcomePages.length,
-                        effect: smooth_page_indicator.ExpandingDotsEffect(
-                          dotColor: Colors.grey,
-                          activeDotColor: Colors.black,
-                          expansionFactor: 3,
-                          spacing: 8.0,
-                          dotHeight: 8.0,
-                          dotWidth: 8.0,
-                        ),
-                        onDotClicked: (index) {
-                          pageViewController.animateToPage(
-                            index,
-                            duration: const Duration(milliseconds: 500),
-                            curve: Curves.ease,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(welcomePages.length, (index) {
+                          return Container(
+                            width: 8,
+                            height: 8,
+                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: pageViewController.hasClients && 
+                                     pageViewController.page?.round() == index
+                                  ? Colors.black
+                                  : Colors.grey,
+                            ),
                           );
-                        },
+                        }),
                       ),
                     ),
                     const SizedBox(height: 20),

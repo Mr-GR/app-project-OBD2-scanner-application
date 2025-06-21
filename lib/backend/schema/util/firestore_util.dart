@@ -1,14 +1,27 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+// TODO: FIREBASE INTEGRATION
+// When ready to integrate Firebase, uncomment:
+// import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '/backend/schema/util/schema_util.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 
-typedef RecordBuilder<T> = T Function(DocumentSnapshot snapshot);
+// Mock DocumentSnapshot for development
+class MockDocumentSnapshot {
+  final Map<String, dynamic> _data;
+  final MockDocumentReference reference;
+  
+  MockDocumentSnapshot(this._data, this.reference);
+  
+  Map<String, dynamic> get data => _data;
+}
+
+// Use MockDocumentReference from flutter_flow_util.dart
+typedef RecordBuilder<T> = T Function(MockDocumentSnapshot snapshot);
 
 abstract class FirestoreRecord {
   FirestoreRecord(this.reference, this.snapshotData);
   Map<String, dynamic> snapshotData;
-  DocumentReference reference;
+  MockDocumentReference reference;
 }
 
 abstract class FFFirebaseStruct extends BaseStruct {
@@ -36,22 +49,24 @@ Map<String, dynamic> mapFromFirestore(Map<String, dynamic> data) =>
     mergeNestedFields(data)
         .where((k, _) => k != FirestoreUtilData.name)
         .map((key, value) {
-      // Handle Timestamp
-      if (value is Timestamp) {
-        value = value.toDate();
-      }
-      // Handle list of Timestamp
-      if (value is Iterable && value.isNotEmpty && value.first is Timestamp) {
-        value = value.map((v) => (v as Timestamp).toDate()).toList();
-      }
-      // Handle GeoPoint
-      if (value is GeoPoint) {
-        value = value.toLatLng();
-      }
-      // Handle list of GeoPoint
-      if (value is Iterable && value.isNotEmpty && value.first is GeoPoint) {
-        value = value.map((v) => (v as GeoPoint).toLatLng()).toList();
-      }
+      // TODO: FIREBASE INTEGRATION
+      // When ready to integrate Firebase, uncomment:
+      // // Handle Timestamp
+      // if (value is Timestamp) {
+      //   value = value.toDate();
+      // }
+      // // Handle list of Timestamp
+      // if (value is Iterable && value.isNotEmpty && value.first is Timestamp) {
+      //   value = value.map((v) => (v as Timestamp).toDate()).toList();
+      // }
+      // // Handle GeoPoint
+      // if (value is GeoPoint) {
+      //   value = value.toLatLng();
+      // }
+      // // Handle list of GeoPoint
+      // if (value is Iterable && value.isNotEmpty && value.first is GeoPoint) {
+      //   value = value.map((v) => (v as GeoPoint).toLatLng()).toList();
+      // }
       // Handle nested data.
       if (value is Map) {
         value = mapFromFirestore(value as Map<String, dynamic>);
@@ -67,14 +82,16 @@ Map<String, dynamic> mapFromFirestore(Map<String, dynamic> data) =>
 
 Map<String, dynamic> mapToFirestore(Map<String, dynamic> data) =>
     data.where((k, v) => k != FirestoreUtilData.name).map((key, value) {
-      // Handle GeoPoint
-      if (value is LatLng) {
-        value = value.toGeoPoint();
-      }
-      // Handle list of GeoPoint
-      if (value is Iterable && value.isNotEmpty && value.first is LatLng) {
-        value = value.map((v) => (v as LatLng).toGeoPoint()).toList();
-      }
+      // TODO: FIREBASE INTEGRATION
+      // When ready to integrate Firebase, uncomment:
+      // // Handle GeoPoint
+      // if (value is LatLng) {
+      //   value = value.toGeoPoint();
+      // }
+      // // Handle list of GeoPoint
+      // if (value is Iterable && value.isNotEmpty && value.first is LatLng) {
+      //   value = value.map((v) => (v as LatLng).toGeoPoint()).toList();
+      // }
       // Handle Color
       if (value is Color) {
         value = value.toCssString();
@@ -96,18 +113,24 @@ Map<String, dynamic> mapToFirestore(Map<String, dynamic> data) =>
       return MapEntry(key, value);
     });
 
-List<GeoPoint>? convertToGeoPointList(List<LatLng>? list) =>
-    list?.map((e) => e.toGeoPoint()).toList();
+// TODO: FIREBASE INTEGRATION
+// When ready to integrate Firebase, uncomment:
+// List<GeoPoint>? convertToGeoPointList(List<LatLng>? list) =>
+//     list?.map((e) => e.toGeoPoint()).toList();
 
-extension GeoPointExtension on LatLng {
-  GeoPoint toGeoPoint() => GeoPoint(latitude, longitude);
-}
+// TODO: FIREBASE INTEGRATION
+// When ready to integrate Firebase, uncomment:
+// extension GeoPointExtension on LatLng {
+//   GeoPoint toGeoPoint() => GeoPoint(latitude, longitude);
+// }
 
-extension LatLngExtension on GeoPoint {
-  LatLng toLatLng() => LatLng(latitude, longitude);
-}
+// TODO: FIREBASE INTEGRATION
+// When ready to integrate Firebase, uncomment:
+// extension LatLngExtension on GeoPoint {
+//   LatLng toLatLng() => LatLng(latitude, longitude);
+// }
 
-DocumentReference toRef(String ref) => FirebaseFirestore.instance.doc(ref);
+MockDocumentReference toRef(String ref) => MockDocumentReference(ref);
 
 T? safeGet<T>(T Function() func, [Function(dynamic)? reportError]) {
   try {

@@ -3,7 +3,6 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'settings_model.dart';
 export 'settings_model.dart';
 
@@ -31,7 +30,6 @@ class _SettingsWidgetState extends State<SettingsWidget> {
   @override
   void dispose() {
     _model.dispose();
-
     super.dispose();
   }
 
@@ -39,25 +37,16 @@ class _SettingsWidgetState extends State<SettingsWidget> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: scaffoldKey,
-      backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
+      backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
       appBar: AppBar(
-        backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
+        backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
         automaticallyImplyLeading: false,
         title: Text(
           'My Profile',
-          style: FlutterFlowTheme.of(context).displaySmall.override(
-                font: GoogleFonts.interTight(
-                  fontWeight:
-                      FlutterFlowTheme.of(context).displaySmall.fontWeight,
-                  fontStyle:
-                      FlutterFlowTheme.of(context).displaySmall.fontStyle,
-                ),
-                color: FlutterFlowTheme.of(context).primaryText,
-                letterSpacing: 0.0,
-                fontWeight:
-                    FlutterFlowTheme.of(context).displaySmall.fontWeight,
-                fontStyle: FlutterFlowTheme.of(context).displaySmall.fontStyle,
-              ),
+          style: FlutterFlowTheme.of(context).displaySmall.copyWith(
+            fontFamily: "Inter",
+            color: FlutterFlowTheme.of(context).primaryText,
+          ),
         ),
         actions: [
           Padding(
@@ -109,42 +98,20 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                 children: [
                   Text(
                     'Manny Guevara',
-                    style: FlutterFlowTheme.of(context).bodyMedium.override(
-                          font: GoogleFonts.inter(
-                            fontWeight: FontWeight.bold,
-                            fontStyle: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .fontStyle,
-                          ),
-                          color: FlutterFlowTheme.of(context).primary,
-                          letterSpacing: 0.0,
-                          fontWeight: FontWeight.bold,
-                          fontStyle:
-                              FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                        ),
+                    style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
+                      fontFamily: "Inter",
+                      color: FlutterFlowTheme.of(context).primary,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   Padding(
                     padding: EdgeInsetsDirectional.fromSTEB(4.0, 0.0, 0.0, 0.0),
                     child: Text(
                       'manny@gmail.com',
-                      style: FlutterFlowTheme.of(context).bodyMedium.override(
-                            font: GoogleFonts.inter(
-                              fontWeight: FlutterFlowTheme.of(context)
-                                  .bodyMedium
-                                  .fontWeight,
-                              fontStyle: FlutterFlowTheme.of(context)
-                                  .bodyMedium
-                                  .fontStyle,
-                            ),
-                            color: FlutterFlowTheme.of(context).primaryText,
-                            letterSpacing: 0.0,
-                            fontWeight: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .fontWeight,
-                            fontStyle: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .fontStyle,
-                          ),
+                      style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
+                        fontFamily: "Inter",
+                        color: FlutterFlowTheme.of(context).primaryText,
+                      ),
                     ),
                   ),
                 ],
@@ -172,23 +139,9 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                       EdgeInsetsDirectional.fromSTEB(16.0, 12.0, 0.0, 12.0),
                   child: Text(
                     'My Account Information',
-                    style: FlutterFlowTheme.of(context).labelMedium.override(
-                          font: GoogleFonts.inter(
-                            fontWeight: FlutterFlowTheme.of(context)
-                                .labelMedium
-                                .fontWeight,
-                            fontStyle: FlutterFlowTheme.of(context)
-                                .labelMedium
-                                .fontStyle,
-                          ),
-                          letterSpacing: 0.0,
-                          fontWeight: FlutterFlowTheme.of(context)
-                              .labelMedium
-                              .fontWeight,
-                          fontStyle: FlutterFlowTheme.of(context)
-                              .labelMedium
-                              .fontStyle,
-                        ),
+                    style: FlutterFlowTheme.of(context).labelMedium.copyWith(
+                      fontFamily: "Inter",
+                    ),
                   ),
                 ),
               ),
@@ -224,23 +177,9 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                           Text(
                             'Change Password',
                             style:
-                                FlutterFlowTheme.of(context).bodyLarge.override(
-                                      font: GoogleFonts.inter(
-                                        fontWeight: FlutterFlowTheme.of(context)
-                                            .bodyLarge
-                                            .fontWeight,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .bodyLarge
-                                            .fontStyle,
-                                      ),
-                                      letterSpacing: 0.0,
-                                      fontWeight: FlutterFlowTheme.of(context)
-                                          .bodyLarge
-                                          .fontWeight,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .bodyLarge
-                                          .fontStyle,
-                                    ),
+                                FlutterFlowTheme.of(context).bodyLarge.copyWith(
+                              fontFamily: "Inter",
+                            ),
                           ),
                           Expanded(
                             child: Align(
@@ -282,23 +221,9 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                       EdgeInsetsDirectional.fromSTEB(16.0, 12.0, 0.0, 12.0),
                   child: Text(
                     'Support',
-                    style: FlutterFlowTheme.of(context).labelMedium.override(
-                          font: GoogleFonts.inter(
-                            fontWeight: FlutterFlowTheme.of(context)
-                                .labelMedium
-                                .fontWeight,
-                            fontStyle: FlutterFlowTheme.of(context)
-                                .labelMedium
-                                .fontStyle,
-                          ),
-                          letterSpacing: 0.0,
-                          fontWeight: FlutterFlowTheme.of(context)
-                              .labelMedium
-                              .fontWeight,
-                          fontStyle: FlutterFlowTheme.of(context)
-                              .labelMedium
-                              .fontStyle,
-                        ),
+                    style: FlutterFlowTheme.of(context).labelMedium.copyWith(
+                      fontFamily: "Inter",
+                    ),
                   ),
                 ),
               ),
@@ -339,25 +264,11 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                                 'Tutorial',
                                 style: FlutterFlowTheme.of(context)
                                     .bodyLarge
-                                    .override(
-                                      font: GoogleFonts.inter(
-                                        fontWeight: FlutterFlowTheme.of(context)
-                                            .bodyLarge
-                                            .fontWeight,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .bodyLarge
-                                            .fontStyle,
-                                      ),
-                                      color: FlutterFlowTheme.of(context)
-                                          .primaryText,
-                                      letterSpacing: 0.0,
-                                      fontWeight: FlutterFlowTheme.of(context)
-                                          .bodyLarge
-                                          .fontWeight,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .bodyLarge
-                                          .fontStyle,
-                                    ),
+                                    .copyWith(
+                                  fontFamily: "Inter",
+                                  color: FlutterFlowTheme.of(context)
+                                      .primaryText,
+                                ),
                               ),
                               Expanded(
                                 child: Align(
@@ -411,25 +322,11 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                             'Submit a Bug',
                             style: FlutterFlowTheme.of(context)
                                 .bodyLarge
-                                .override(
-                                  font: GoogleFonts.inter(
-                                    fontWeight: FlutterFlowTheme.of(context)
-                                        .bodyLarge
-                                        .fontWeight,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .bodyLarge
-                                        .fontStyle,
-                                  ),
-                                  color:
-                                      FlutterFlowTheme.of(context).primaryText,
-                                  letterSpacing: 0.0,
-                                  fontWeight: FlutterFlowTheme.of(context)
-                                      .bodyLarge
-                                      .fontWeight,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .bodyLarge
-                                      .fontStyle,
-                                ),
+                                .copyWith(
+                              fontFamily: "Inter",
+                              color:
+                                  FlutterFlowTheme.of(context).primaryText,
+                            ),
                           ),
                           Expanded(
                             child: Align(
@@ -480,23 +377,9 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                           Text(
                             'Submit a Feature Request',
                             style:
-                                FlutterFlowTheme.of(context).bodyLarge.override(
-                                      font: GoogleFonts.inter(
-                                        fontWeight: FlutterFlowTheme.of(context)
-                                            .bodyLarge
-                                            .fontWeight,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .bodyLarge
-                                            .fontStyle,
-                                      ),
-                                      letterSpacing: 0.0,
-                                      fontWeight: FlutterFlowTheme.of(context)
-                                          .bodyLarge
-                                          .fontWeight,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .bodyLarge
-                                          .fontStyle,
-                                    ),
+                                FlutterFlowTheme.of(context).bodyLarge.copyWith(
+                              fontFamily: "Inter",
+                            ),
                           ),
                           Expanded(
                             child: Align(
@@ -584,32 +467,14 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                                     'Light ',
                                     style: FlutterFlowTheme.of(context)
                                         .bodyMedium
-                                        .override(
-                                          font: GoogleFonts.inter(
-                                            fontWeight:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontWeight,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontStyle,
-                                          ),
+                                        .copyWith(
+                                          fontFamily: "Inter",
                                           color: Theme.of(context).brightness ==
                                                   Brightness.light
                                               ? FlutterFlowTheme.of(context)
                                                   .primaryText
                                               : FlutterFlowTheme.of(context)
                                                   .secondaryText,
-                                          letterSpacing: 0.0,
-                                          fontWeight:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMedium
-                                                  .fontWeight,
-                                          fontStyle:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMedium
-                                                  .fontStyle,
                                         ),
                                   ),
                                 ),
@@ -667,32 +532,14 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                                     'Dark',
                                     style: FlutterFlowTheme.of(context)
                                         .bodyMedium
-                                        .override(
-                                          font: GoogleFonts.inter(
-                                            fontWeight:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontWeight,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontStyle,
-                                          ),
+                                        .copyWith(
+                                          fontFamily: "Inter",
                                           color: Theme.of(context).brightness ==
                                                   Brightness.dark
                                               ? FlutterFlowTheme.of(context)
                                                   .primaryText
                                               : FlutterFlowTheme.of(context)
                                                   .secondaryText,
-                                          letterSpacing: 0.0,
-                                          fontWeight:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMedium
-                                                  .fontWeight,
-                                          fontStyle:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMedium
-                                                  .fontStyle,
                                         ),
                                   ),
                                 ),
@@ -727,21 +574,10 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                       color: FlutterFlowTheme.of(context).secondaryBackground,
                       textStyle: FlutterFlowTheme.of(context)
                           .titleSmall
-                          .override(
-                            font: GoogleFonts.interTight(
-                              fontWeight: FontWeight.w500,
-                              fontStyle: FlutterFlowTheme.of(context)
-                                  .titleSmall
-                                  .fontStyle,
-                            ),
+                          .copyWith(
+                            fontFamily: "Inter",
                             color: FlutterFlowTheme.of(context).secondaryText,
-                            letterSpacing: 0.0,
-                            fontWeight: FontWeight.w500,
-                            fontStyle: FlutterFlowTheme.of(context)
-                                .titleSmall
-                                .fontStyle,
                           ),
-                      elevation: 0.0,
                       borderSide: BorderSide(
                         color: FlutterFlowTheme.of(context).alternate,
                         width: 2.0,

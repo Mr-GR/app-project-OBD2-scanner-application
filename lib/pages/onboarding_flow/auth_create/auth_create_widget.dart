@@ -1,13 +1,9 @@
 import 'package:o_b_d2_scanner_frontend/flutter_flow/flutter_flow_icon_button.dart';
-import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter/services.dart';
 import 'auth_create_model.dart';
-import '/auth/firebase_auth/auth_util.dart';
 
 class AuthCreateWidget extends StatefulWidget {
   const AuthCreateWidget({super.key});
@@ -18,6 +14,7 @@ class AuthCreateWidget extends StatefulWidget {
 
 class _AuthCreateWidgetState extends State<AuthCreateWidget> {
   late AuthCreateModel _model;
+  final scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -34,9 +31,10 @@ class _AuthCreateWidgetState extends State<AuthCreateWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
+      key: scaffoldKey,
+      backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
       appBar: AppBar(
-        backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
+        backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
         automaticallyImplyLeading: false,
         leading: FlutterFlowIconButton(
           borderColor: Colors.transparent,
@@ -64,15 +62,11 @@ class _AuthCreateWidgetState extends State<AuthCreateWidget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding:
-                      const EdgeInsetsDirectional.fromSTEB(12, 32, 0, 8),
+                  padding: const EdgeInsetsDirectional.fromSTEB(12, 32, 0, 8),
                   child: Text(
                     'Create an account to get started!',
-                    style: FlutterFlowTheme.of(context)
-                        .displayMedium
-                        .override(
-                          font: GoogleFonts.interTight(),
-                          letterSpacing: 0.0,
+                    style: FlutterFlowTheme.of(context).displayMedium.copyWith(
+                          fontFamily: "Inter",
                           fontWeight: FlutterFlowTheme.of(context)
                               .displayMedium
                               .fontWeight,
@@ -83,21 +77,16 @@ class _AuthCreateWidgetState extends State<AuthCreateWidget> {
                   ),
                 ),
                 Padding(
-                  padding:
-                      const EdgeInsetsDirectional.fromSTEB(12, 0, 12, 12),
+                  padding: const EdgeInsetsDirectional.fromSTEB(12, 0, 12, 12),
                   child: Text(
                     'Get answer about your vehicle quick.',
-                    style: FlutterFlowTheme.of(context)
-                        .labelLarge
-                        .override(
-                          font: GoogleFonts.inter(),
-                          letterSpacing: 0.0,
+                    style: FlutterFlowTheme.of(context).labelLarge.copyWith(
+                          fontFamily: "Inter",
                           fontWeight: FlutterFlowTheme.of(context)
                               .labelLarge
                               .fontWeight,
-                          fontStyle: FlutterFlowTheme.of(context)
-                              .labelLarge
-                              .fontStyle,
+                          fontStyle:
+                              FlutterFlowTheme.of(context).labelLarge.fontStyle,
                         ),
                   ),
                 ),
@@ -127,15 +116,19 @@ class _AuthCreateWidgetState extends State<AuthCreateWidget> {
                       if (_model.emailAddressTextController.text.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Email and Password cannot be left blank.'),
+                            content: Text(
+                                'Email and Password cannot be left blank.'),
                           ),
                         );
                         return;
                       }
 
-                      await authManager.resetPassword(
-                        email: _model.emailAddressTextController.text,
-                        context: context,
+                      // TODO: Implement password reset functionality
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                              'Password reset functionality not implemented yet.'),
+                        ),
                       );
                     },
                     text: 'Submit',
@@ -147,20 +140,18 @@ class _AuthCreateWidgetState extends State<AuthCreateWidget> {
                       iconPadding: const EdgeInsetsDirectional.fromSTEB(
                           0.0, 0.0, 0.0, 0.0),
                       color: FlutterFlowTheme.of(context).primaryText,
-                      textStyle: FlutterFlowTheme.of(context)
-                          .titleMedium
-                          .override(
-                            font: GoogleFonts.interTight(),
-                            color:
-                                FlutterFlowTheme.of(context).secondaryBackground,
-                            letterSpacing: 0.0,
-                            fontWeight: FlutterFlowTheme.of(context)
-                                .titleMedium
-                                .fontWeight,
-                            fontStyle: FlutterFlowTheme.of(context)
-                                .titleMedium
-                                .fontStyle,
-                          ),
+                      textStyle:
+                          FlutterFlowTheme.of(context).titleMedium.copyWith(
+                                fontFamily: "Inter",
+                                color: FlutterFlowTheme.of(context)
+                                    .secondaryBackground,
+                                fontWeight: FlutterFlowTheme.of(context)
+                                    .titleMedium
+                                    .fontWeight,
+                                fontStyle: FlutterFlowTheme.of(context)
+                                    .titleMedium
+                                    .fontStyle,
+                              ),
                       elevation: 4.0,
                       borderSide: const BorderSide(
                         color: Colors.transparent,
@@ -234,9 +225,9 @@ class _AuthCreateWidgetState extends State<AuthCreateWidget> {
       labelText: label,
       labelStyle: FlutterFlowTheme.of(context).labelLarge,
       errorStyle: FlutterFlowTheme.of(context).labelMedium.copyWith(
-        color: FlutterFlowTheme.of(context).error,
-        height: 1.5,
-      ),
+            color: FlutterFlowTheme.of(context).error,
+            height: 1.5,
+          ),
       enabledBorder: UnderlineInputBorder(
         borderSide: BorderSide(
           color: FlutterFlowTheme.of(context).alternate,

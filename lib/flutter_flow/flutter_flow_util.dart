@@ -1,19 +1,20 @@
+import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:collection/collection.dart';
 import 'package:from_css_color/from_css_color.dart';
-import 'dart:math' show pow, pi, sin;
 import 'package:intl/intl.dart';
 import 'package:json_path/json_path.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:go_router/go_router.dart';
+import 'package:page_transition/page_transition.dart';
 
 import '../main.dart';
-
 
 export 'lat_lng.dart';
 export 'place.dart';
@@ -23,10 +24,64 @@ export 'dart:math' show min, max;
 export 'dart:typed_data' show Uint8List;
 export 'dart:convert' show jsonEncode, jsonDecode;
 export 'package:intl/intl.dart';
-export 'package:cloud_firestore/cloud_firestore.dart'
-    show DocumentReference, FirebaseFirestore;
+// TODO: FIREBASE INTEGRATION
+// When ready to integrate Firebase, uncomment:
+// export 'package:cloud_firestore/cloud_firestore.dart'
+//     show DocumentReference, FirebaseFirestore;
 export 'package:page_transition/page_transition.dart';
 export 'nav/nav.dart';
+
+// Mock DocumentReference for development
+class MockDocumentReference {
+  final String path;
+
+  MockDocumentReference(this.path);
+
+  dynamic get ref => this;
+  String get id => path.split('/').last;
+}
+
+// Mock CollectionReference for development
+class MockCollectionReference extends MockDocumentReference {
+  MockCollectionReference(String path) : super(path);
+
+  MockDocumentReference doc([String? id]) {
+    final docId = id ?? DateTime.now().millisecondsSinceEpoch.toString();
+    return MockDocumentReference('$path/$docId');
+  }
+}
+
+// Mock Query for development
+class MockQuery {
+  final String collectionPath;
+
+  MockQuery(this.collectionPath);
+
+  MockQuery limit(int limit) => this;
+  MockQuery where(String field,
+          {dynamic isEqualTo, dynamic isLessThan, dynamic isGreaterThan}) =>
+      this;
+  MockQuery orderBy(String field, {bool descending = false}) => this;
+}
+
+// Mock FirebaseFirestore for development
+class MockFirebaseFirestore {
+  static final MockFirebaseFirestore _instance =
+      MockFirebaseFirestore._internal();
+  factory MockFirebaseFirestore() => _instance;
+  MockFirebaseFirestore._internal();
+
+  static MockFirebaseFirestore get instance => _instance;
+
+  MockDocumentReference doc(String path) => MockDocumentReference(path);
+  MockCollectionReference collection(String path) =>
+      MockCollectionReference(path);
+}
+
+// Type aliases for compatibility
+typedef DocumentReference = MockDocumentReference;
+typedef CollectionReference = MockCollectionReference;
+typedef Query = MockQuery;
 
 T valueOrDefault<T>(T? value, T defaultValue) =>
     (value is String && value.isEmpty) || value == null ? defaultValue : value;
@@ -268,7 +323,11 @@ extension IterableExt<T> on Iterable<T> {
 }
 
 extension StringDocRef on String {
-  DocumentReference get ref => FirebaseFirestore.instance.doc(this);
+  DocumentReference get ref =>
+      // TODO: FIREBASE INTEGRATION
+      // When ready to integrate Firebase, replace with:
+      // FirebaseFirestore.instance.doc(this);
+      MockDocumentReference(this);
 }
 
 void setDarkModeSetting(BuildContext context, ThemeMode themeMode) =>
@@ -453,3 +512,42 @@ String getCurrentRoute(BuildContext context) =>
     context.mounted ? MyApp.of(context).getRoute() : '';
 List<String> getCurrentRouteStack(BuildContext context) =>
     context.mounted ? MyApp.of(context).getRouteStack() : [];
+
+// Navigation extensions for GoRouter
+extension GoRouterExtension on BuildContext {
+  void push(String location, {Object? extra}) {
+    GoRouter.of(this).push(location, extra: extra);
+  }
+
+  void pushNamed(String name, {Object? extra}) {
+    GoRouter.of(this).pushNamed(name, extra: extra);
+  }
+
+  void pop() {
+    GoRouter.of(this).pop();
+  }
+
+  void go(String location, {Object? extra}) {
+    GoRouter.of(this).go(location, extra: extra);
+  }
+
+  void goNamed(String name, {Object? extra}) {
+    GoRouter.of(this).goNamed(name, extra: extra);
+  }
+}
+
+// Transition info for navigation
+class TransitionInfo {
+  final bool hasTransition;
+  final PageTransitionType? transitionType;
+  final Duration? transitionDuration;
+
+  const TransitionInfo({
+    this.hasTransition = true,
+    this.transitionType,
+    this.transitionDuration,
+  });
+}
+
+// Key for transition info
+const kTransitionInfoKey = 'transitionInfo';

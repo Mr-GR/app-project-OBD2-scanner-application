@@ -6,8 +6,6 @@ import 'api_manager.dart';
 
 export 'api_manager.dart' show ApiCallResponse;
 
-const _kPrivateApiFunctionName = 'ffPrivateApiCall';
-
 /// Start OpenAI ChatGPT Group Code
 
 class OpenAIChatGPTGroup {
@@ -88,18 +86,6 @@ String _toEncodable(dynamic item) {
     return item.path;
   }
   return item;
-}
-
-String _serializeList(List? list) {
-  list ??= <String>[];
-  try {
-    return json.encode(list, toEncodable: _toEncodable);
-  } catch (_) {
-    if (kDebugMode) {
-      print("List serialization failed. Returning empty list.");
-    }
-    return '[]';
-  }
 }
 
 String _serializeJson(dynamic jsonVar, [bool isList = false]) {

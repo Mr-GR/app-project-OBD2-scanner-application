@@ -1,17 +1,16 @@
 import 'package:o_b_d2_scanner_frontend/index.dart';
 import 'package:o_b_d2_scanner_frontend/pages/onboarding_flow/auth_login/auth_login_model.dart';
-import 'package:o_b_d2_scanner_frontend/pages/onboarding_flow/auth_forgot_password/auth_forgot_password_widget.dart';
-
-import '/auth/firebase_auth/auth_util.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'package:o_b_d2_scanner_frontend/pages/onboarding_flow/auth_forgot_password/auth_forgot_password_widget.dart';
+import 'package:o_b_d2_scanner_frontend/pages/home/main_tab_scaffold.dart';
+export 'auth_login_model.dart';
 
 class AuthLoginWidget extends StatefulWidget {
   const AuthLoginWidget({super.key});
@@ -27,7 +26,6 @@ class _AuthLoginWidgetState extends State<AuthLoginWidget> {
   late AuthLoginModel _model;
   final scaffoldKey = GlobalKey<ScaffoldState>();
   late StreamSubscription<bool> _keyboardVisibilitySubscription;
-  bool _isKeyboardVisible = false;
 
   @override
   void initState() {
@@ -38,7 +36,7 @@ class _AuthLoginWidgetState extends State<AuthLoginWidget> {
       _keyboardVisibilitySubscription =
           KeyboardVisibilityController().onChange.listen((bool visible) {
         safeSetState(() {
-          _isKeyboardVisible = visible;
+          // _isKeyboardVisible = visible;
         });
       });
     }
@@ -62,9 +60,9 @@ class _AuthLoginWidgetState extends State<AuthLoginWidget> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: scaffoldKey,
-      backgroundColor:  FlutterFlowTheme.of(context).secondaryBackground,
+      backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
       appBar: AppBar(
-        backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
+        backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
         automaticallyImplyLeading: false,
         leading: FlutterFlowIconButton(
           borderColor: Colors.transparent,
@@ -100,16 +98,8 @@ class _AuthLoginWidgetState extends State<AuthLoginWidget> {
                           'Get to my account',
                           style: FlutterFlowTheme.of(context)
                               .displayMedium
-                              .override(
-                                font: GoogleFonts.interTight(
-                                  fontWeight: FlutterFlowTheme.of(context)
-                                      .displayMedium
-                                      .fontWeight,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .displayMedium
-                                      .fontStyle,
-                                ),
-                                letterSpacing: 0.0,
+                              .copyWith(
+                                fontFamily: "Inter",
                               ),
                         ),
                       ),
@@ -118,25 +108,16 @@ class _AuthLoginWidgetState extends State<AuthLoginWidget> {
                             const EdgeInsetsDirectional.fromSTEB(12, 0, 12, 12),
                         child: Text(
                           'Access your wonderful things by logging in below.',
-                          style: FlutterFlowTheme.of(context)
-                              .labelLarge
-                              .override(
-                                font: GoogleFonts.inter(
-                                  fontWeight: FlutterFlowTheme.of(context)
-                                      .labelLarge
-                                      .fontWeight,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .labelLarge
-                                      .fontStyle,
-                                ),
-                                letterSpacing: 0.0,
-                              ),
+                          style:
+                              FlutterFlowTheme.of(context).labelLarge.copyWith(
+                                    fontFamily: "Inter",
+                                  ),
                         ),
                       ),
                       // Email Field
                       Padding(
-                        padding: const EdgeInsetsDirectional.fromSTEB(
-                            16, 12, 16, 0),
+                        padding:
+                            const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 0),
                         child: TextFormField(
                           controller: _model.emailAddressTextController,
                           focusNode: _model.emailAddressFocusNode,
@@ -151,8 +132,8 @@ class _AuthLoginWidgetState extends State<AuthLoginWidget> {
                       ),
                       // Password Field
                       Padding(
-                        padding: const EdgeInsetsDirectional.fromSTEB(
-                            16, 12, 16, 0),
+                        padding:
+                            const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 0),
                         child: TextFormField(
                           controller: _model.passwordTextController,
                           focusNode: _model.passwordFocusNode,
@@ -174,8 +155,7 @@ class _AuthLoginWidgetState extends State<AuthLoginWidget> {
                             ),
                           ),
                           cursorColor: FlutterFlowTheme.of(context).primary,
-                          validator:
-                              _model.passwordTextControllerValidator,
+                          validator: _model.passwordTextControllerValidator,
                           inputFormatters: [
                             if (!isAndroid && !isiOS)
                               TextInputFormatter.withFunction(
@@ -190,13 +170,15 @@ class _AuthLoginWidgetState extends State<AuthLoginWidget> {
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsetsDirectional.fromSTEB(
-                            16, 12, 16, 0),
+                        padding:
+                            const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 0),
                         child: FFButtonWidget(
                           onPressed: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => const HomePageWidget()),
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      const MainTabScaffold()),
                             );
                           },
                           text: 'Login',
@@ -215,13 +197,15 @@ class _AuthLoginWidgetState extends State<AuthLoginWidget> {
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsetsDirectional.fromSTEB(
-                            16, 12, 16, 0),
+                        padding:
+                            const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 0),
                         child: FFButtonWidget(
                           onPressed: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => const AuthForgotPasswordWidget()),
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      const AuthForgotPasswordWidget()),
                             );
                           },
                           text: 'Forgot Password',

@@ -3,7 +3,6 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'empty_list_model.dart';
 export 'empty_list_model.dart';
 
@@ -62,22 +61,9 @@ class _EmptyListWidgetState extends State<EmptyListWidget> {
               SelectionArea(
                   child: AutoSizeText(
                 'Ai Chat Active!',
-                style: FlutterFlowTheme.of(context).headlineMedium.override(
-                      font: GoogleFonts.interTight(
-                        fontWeight: FlutterFlowTheme.of(context)
-                            .headlineMedium
-                            .fontWeight,
-                        fontStyle: FlutterFlowTheme.of(context)
-                            .headlineMedium
-                            .fontStyle,
-                      ),
-                      letterSpacing: 0.0,
-                      fontWeight: FlutterFlowTheme.of(context)
-                          .headlineMedium
-                          .fontWeight,
-                      fontStyle:
-                          FlutterFlowTheme.of(context).headlineMedium.fontStyle,
-                      lineHeight: 1.5,
+                style: FlutterFlowTheme.of(context).headlineMedium.copyWith(
+                      fontFamily: "Inter",
+                      height: 1.5,
                     ),
               )),
               Padding(
@@ -86,19 +72,8 @@ class _EmptyListWidgetState extends State<EmptyListWidget> {
                     child: AutoSizeText(
                   'IMPORTANT!!! Need to do:\nGo to the action below and update your API Key in order for this chat to function.\n\nYou can get an API key at:',
                   textAlign: TextAlign.center,
-                  style: FlutterFlowTheme.of(context).labelLarge.override(
-                        font: GoogleFonts.inter(
-                          fontWeight: FlutterFlowTheme.of(context)
-                              .labelLarge
-                              .fontWeight,
-                          fontStyle:
-                              FlutterFlowTheme.of(context).labelLarge.fontStyle,
-                        ),
-                        letterSpacing: 0.0,
-                        fontWeight:
-                            FlutterFlowTheme.of(context).labelLarge.fontWeight,
-                        fontStyle:
-                            FlutterFlowTheme.of(context).labelLarge.fontStyle,
+                  style: FlutterFlowTheme.of(context).labelLarge.copyWith(
+                        fontFamily: "Inter",
                       ),
                 )),
               ),
@@ -106,17 +81,10 @@ class _EmptyListWidgetState extends State<EmptyListWidget> {
                 padding: EdgeInsetsDirectional.fromSTEB(0.0, 4.0, 0.0, 0.0),
                 child: Text(
                   'https://platform.openai.com',
-                  style: FlutterFlowTheme.of(context).bodyMedium.override(
-                        font: GoogleFonts.inter(
-                          fontWeight: FontWeight.w600,
-                          fontStyle:
-                              FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                        ),
-                        color: FlutterFlowTheme.of(context).primary,
-                        letterSpacing: 0.0,
+                  style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
+                        fontFamily: "Inter",
                         fontWeight: FontWeight.w600,
-                        fontStyle:
-                            FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                        color: FlutterFlowTheme.of(context).primary,
                       ),
                 ),
               ),
@@ -134,22 +102,9 @@ class _EmptyListWidgetState extends State<EmptyListWidget> {
                     iconPadding:
                         EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
                     color: FlutterFlowTheme.of(context).primary,
-                    textStyle: FlutterFlowTheme.of(context).titleSmall.override(
-                          font: GoogleFonts.interTight(
-                            fontWeight: FlutterFlowTheme.of(context)
-                                .titleSmall
-                                .fontWeight,
-                            fontStyle: FlutterFlowTheme.of(context)
-                                .titleSmall
-                                .fontStyle,
-                          ),
+                    textStyle: FlutterFlowTheme.of(context).titleSmall.copyWith(
+                          fontFamily: "Inter",
                           color: Colors.white,
-                          letterSpacing: 0.0,
-                          fontWeight: FlutterFlowTheme.of(context)
-                              .titleSmall
-                              .fontWeight,
-                          fontStyle:
-                              FlutterFlowTheme.of(context).titleSmall.fontStyle,
                         ),
                     elevation: 3.0,
                     borderSide: BorderSide(

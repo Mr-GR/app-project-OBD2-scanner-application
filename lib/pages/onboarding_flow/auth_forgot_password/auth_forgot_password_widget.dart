@@ -1,4 +1,6 @@
-import '/auth/firebase_auth/auth_util.dart';
+// TODO: FIREBASE INTEGRATION
+// When ready to integrate Firebase, uncomment:
+// import '/auth/firebase_auth/auth_util.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -6,7 +8,6 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'auth_forgot_password_model.dart';
 export 'auth_forgot_password_model.dart';
 
@@ -65,9 +66,9 @@ class _AuthForgotPasswordWidgetState extends State<AuthForgotPasswordWidget> {
       },
       child: Scaffold(
         key: scaffoldKey,
-        backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
+        backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
         appBar: AppBar(
-          backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
+          backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
           automaticallyImplyLeading: false,
           leading: FlutterFlowIconButton(
             borderColor: Colors.transparent,
@@ -105,8 +106,8 @@ class _AuthForgotPasswordWidgetState extends State<AuthForgotPasswordWidget> {
                 children: [
                   Expanded(
                     child: Padding(
-                      padding:
-                          const EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                          12.0, 0.0, 12.0, 0.0),
                       child: SingleChildScrollView(
                         child: Column(
                           mainAxisSize: MainAxisSize.max,
@@ -120,9 +121,8 @@ class _AuthForgotPasswordWidgetState extends State<AuthForgotPasswordWidget> {
                                 textAlign: TextAlign.start,
                                 style: FlutterFlowTheme.of(context)
                                     .displayMedium
-                                    .override(
-                                      font: GoogleFonts.interTight(),
-                                      letterSpacing: 0.0,
+                                    .copyWith(
+                                      fontFamily: "Inter",
                                       fontWeight: FlutterFlowTheme.of(context)
                                           .displayMedium
                                           .fontWeight,
@@ -140,9 +140,8 @@ class _AuthForgotPasswordWidgetState extends State<AuthForgotPasswordWidget> {
                                 textAlign: TextAlign.start,
                                 style: FlutterFlowTheme.of(context)
                                     .labelLarge
-                                    .override(
-                                      font: GoogleFonts.inter(),
-                                      letterSpacing: 0.0,
+                                    .copyWith(
+                                      fontFamily: "Inter",
                                       fontWeight: FlutterFlowTheme.of(context)
                                           .labelLarge
                                           .fontWeight,
@@ -164,9 +163,8 @@ class _AuthForgotPasswordWidgetState extends State<AuthForgotPasswordWidget> {
                                   labelText: 'Email Address',
                                   labelStyle: FlutterFlowTheme.of(context)
                                       .labelLarge
-                                      .override(
-                                        font: GoogleFonts.inter(),
-                                        letterSpacing: 0.0,
+                                      .copyWith(
+                                        fontFamily: "Inter",
                                         fontWeight: FlutterFlowTheme.of(context)
                                             .labelLarge
                                             .fontWeight,
@@ -176,18 +174,17 @@ class _AuthForgotPasswordWidgetState extends State<AuthForgotPasswordWidget> {
                                       ),
                                   errorStyle: FlutterFlowTheme.of(context)
                                       .labelMedium
-                                      .override(
-                                        font: GoogleFonts.inter(),
+                                      .copyWith(
+                                        fontFamily: "Inter",
                                         color:
                                             FlutterFlowTheme.of(context).error,
-                                        letterSpacing: 0.0,
                                         fontWeight: FlutterFlowTheme.of(context)
                                             .labelMedium
                                             .fontWeight,
                                         fontStyle: FlutterFlowTheme.of(context)
                                             .labelMedium
                                             .fontStyle,
-                                        lineHeight: 1.5,
+                                        height: 1.5,
                                       ),
                                   enabledBorder: UnderlineInputBorder(
                                     borderSide: BorderSide(
@@ -240,16 +237,15 @@ class _AuthForgotPasswordWidgetState extends State<AuthForgotPasswordWidget> {
                                 ),
                                 style: FlutterFlowTheme.of(context)
                                     .headlineMedium
-                                    .override(
-                                      font: GoogleFonts.interTight(),
-                                      letterSpacing: 0.0,
+                                    .copyWith(
+                                      fontFamily: "Inter",
                                       fontWeight: FlutterFlowTheme.of(context)
                                           .headlineMedium
                                           .fontWeight,
                                       fontStyle: FlutterFlowTheme.of(context)
                                           .headlineMedium
                                           .fontStyle,
-                                      lineHeight: 1.5,
+                                      height: 1.5,
                                     ),
                                 cursorColor:
                                     FlutterFlowTheme.of(context).primary,
@@ -280,9 +276,20 @@ class _AuthForgotPasswordWidgetState extends State<AuthForgotPasswordWidget> {
                             );
                             return;
                           }
-                          await authManager.resetPassword(
-                            email: _model.emailAddressTextController.text,
-                            context: context,
+                          // TODO: FIREBASE INTEGRATION
+                          // When ready to integrate Firebase, uncomment:
+                          // await authManager.resetPassword(
+                          //   email: _model.emailAddressTextController.text,
+                          //   context: context,
+                          // );
+
+                          // Mock implementation
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Password reset link sent! (Mock)',
+                              ),
+                            ),
                           );
                         },
                         text: 'Send Link',
@@ -295,11 +302,10 @@ class _AuthForgotPasswordWidgetState extends State<AuthForgotPasswordWidget> {
                               0.0, 0.0, 0.0, 0.0),
                           color: FlutterFlowTheme.of(context).primaryText,
                           textStyle:
-                              FlutterFlowTheme.of(context).titleMedium.override(
-                                    font: GoogleFonts.interTight(),
+                              FlutterFlowTheme.of(context).titleMedium.copyWith(
+                                    fontFamily: "Inter",
                                     color: FlutterFlowTheme.of(context)
                                         .secondaryBackground,
-                                    letterSpacing: 0.0,
                                     fontWeight: FlutterFlowTheme.of(context)
                                         .titleMedium
                                         .fontWeight,
@@ -313,8 +319,7 @@ class _AuthForgotPasswordWidgetState extends State<AuthForgotPasswordWidget> {
                             width: 1.0,
                           ),
                           borderRadius: BorderRadius.circular(50.0),
-                          hoverColor:
-                              FlutterFlowTheme.of(context).primaryText,
+                          hoverColor: FlutterFlowTheme.of(context).primaryText,
                         ),
                       ),
                     ),

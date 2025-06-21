@@ -4,7 +4,6 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'chat_ai_screen_model.dart';
 export 'chat_ai_screen_model.dart';
 
@@ -58,19 +57,9 @@ class _ChatAiScreenWidgetState extends State<ChatAiScreenWidget> {
           automaticallyImplyLeading: false,
           title: Text(
             'Ai Chat',
-            style: FlutterFlowTheme.of(context).headlineMedium.override(
-                  font: GoogleFonts.interTight(
-                    fontWeight:
-                        FlutterFlowTheme.of(context).headlineMedium.fontWeight,
-                    fontStyle:
-                        FlutterFlowTheme.of(context).headlineMedium.fontStyle,
-                  ),
-                  letterSpacing: 0.0,
-                  fontWeight:
-                      FlutterFlowTheme.of(context).headlineMedium.fontWeight,
-                  fontStyle:
-                      FlutterFlowTheme.of(context).headlineMedium.fontStyle,
-                ),
+            style: FlutterFlowTheme.of(context).headlineMedium.copyWith(
+              fontFamily: "Inter",
+            ),
           ),
           actions: [
             Padding(

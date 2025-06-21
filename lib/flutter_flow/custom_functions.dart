@@ -9,8 +9,10 @@ import 'lat_lng.dart';
 import 'place.dart';
 import 'uploaded_file.dart';
 import '/backend/backend.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '/auth/firebase_auth/auth_util.dart';
+// TODO: FIREBASE INTEGRATION
+// When ready to integrate Firebase, uncomment:
+// import 'package:cloud_firestore/cloud_firestore.dart';
+// import '/auth/firebase_auth/auth_util.dart';
 
 dynamic saveChatHistory(
   dynamic chatHistory,

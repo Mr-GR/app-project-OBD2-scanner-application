@@ -1,114 +1,213 @@
-import 'dart:async';
+import 'package:o_b_d2_scanner_frontend/backend/schema/util/firestore_util.dart';
 
-import 'package:collection/collection.dart';
-
-import '/backend/schema/util/firestore_util.dart';
-
-import 'index.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 
-class UsersRecord extends FirestoreRecord {
-  UsersRecord._(
-    DocumentReference reference,
-    Map<String, dynamic> data,
-  ) : super(reference, data) {
-    _initializeFields();
-  }
+// TODO: FIREBASE INTEGRATION
+// When ready to integrate Firebase, uncomment:
+// import 'package:cloud_firestore/cloud_firestore.dart';
 
-  // "email" field.
-  String? _email;
-  String get email => _email ?? '';
-  bool hasEmail() => _email != null;
+class UsersRecord {
+  final String uid;
+  final String? email;
+  final String? displayName;
+  final String? photoUrl;
+  final String? phoneNumber;
+  final bool? emailVerified;
+  final DateTime? createdTime;
+  final DateTime? lastSignInTime;
+  final String? role;
+  final Map<String, dynamic>? settings;
 
-  // "display_name" field.
-  String? _displayName;
-  String get displayName => _displayName ?? '';
-  bool hasDisplayName() => _displayName != null;
-
-  // "photo_url" field.
-  String? _photoUrl;
-  String get photoUrl => _photoUrl ?? '';
-  bool hasPhotoUrl() => _photoUrl != null;
-
-  // "uid" field.
-  String? _uid;
-  String get uid => _uid ?? '';
-  bool hasUid() => _uid != null;
-
-  // "created_time" field.
-  DateTime? _createdTime;
-  DateTime? get createdTime => _createdTime;
-  bool hasCreatedTime() => _createdTime != null;
-
-  // "phone_number" field.
-  String? _phoneNumber;
-  String get phoneNumber => _phoneNumber ?? '';
-  bool hasPhoneNumber() => _phoneNumber != null;
-
-  // "shortDescription" field.
-  String? _shortDescription;
-  String get shortDescription => _shortDescription ?? '';
-  bool hasShortDescription() => _shortDescription != null;
-
-  // "last_active_time" field.
-  DateTime? _lastActiveTime;
-  DateTime? get lastActiveTime => _lastActiveTime;
-  bool hasLastActiveTime() => _lastActiveTime != null;
-
-  // "role" field.
-  String? _role;
-  String get role => _role ?? '';
-  bool hasRole() => _role != null;
-
-  // "title" field.
-  String? _title;
-  String get title => _title ?? '';
-  bool hasTitle() => _title != null;
-
-  void _initializeFields() {
-    _email = snapshotData['email'] as String?;
-    _displayName = snapshotData['display_name'] as String?;
-    _photoUrl = snapshotData['photo_url'] as String?;
-    _uid = snapshotData['uid'] as String?;
-    _createdTime = snapshotData['created_time'] as DateTime?;
-    _phoneNumber = snapshotData['phone_number'] as String?;
-    _shortDescription = snapshotData['shortDescription'] as String?;
-    _lastActiveTime = snapshotData['last_active_time'] as DateTime?;
-    _role = snapshotData['role'] as String?;
-    _title = snapshotData['title'] as String?;
-  }
+  UsersRecord({
+    required this.uid,
+    this.email,
+    this.displayName,
+    this.photoUrl,
+    this.phoneNumber,
+    this.emailVerified,
+    this.createdTime,
+    this.lastSignInTime,
+    this.role,
+    this.settings,
+  });
 
   static CollectionReference get collection =>
-      FirebaseFirestore.instance.collection('users');
+      // TODO: FIREBASE INTEGRATION
+      // When ready to integrate Firebase, replace with:
+      // FirebaseFirestore.instance.collection('users');
+      MockFirebaseFirestore.instance.collection('users');
 
-  static Stream<UsersRecord> getDocument(DocumentReference ref) =>
-      ref.snapshots().map((s) => UsersRecord.fromSnapshot(s));
+  static Future<UsersRecord?> getDocumentOnce(String uid) async {
+    // TODO: FIREBASE INTEGRATION
+    // When ready to integrate Firebase, replace with:
+    // final ref = collection.doc(uid);
+    // final doc = await ref.get();
+    // if (!doc.exists) return null;
+    // return UsersRecord.fromMap(uid, doc.data()!);
 
-  static Future<UsersRecord> getDocumentOnce(DocumentReference ref) =>
-      ref.get().then((s) => UsersRecord.fromSnapshot(s));
+    // Mock implementation
+    return null;
+  }
 
-  static UsersRecord fromSnapshot(DocumentSnapshot snapshot) => UsersRecord._(
-        snapshot.reference,
-        mapFromFirestore(snapshot.data() as Map<String, dynamic>),
+  static Future<List<UsersRecord>> query({
+    Query Function(Query)? queryBuilder,
+    int limit = -1,
+    bool singleRecord = false,
+  }) async {
+    // TODO: FIREBASE INTEGRATION
+    // When ready to integrate Firebase, replace with:
+    // Query query = collection;
+    // if (queryBuilder != null) {
+    //   query = queryBuilder(query);
+    // }
+    // if (limit > 0 || singleRecord) {
+    //   query = query.limit(singleRecord ? 1 : limit);
+    // }
+    // final querySnapshot = await query.get();
+    // return querySnapshot.docs.map((doc) => UsersRecord.fromMap(doc.id, doc.data())).toList();
+
+    // Mock implementation
+    return [];
+  }
+
+  static Query queryBuilder(Query query) {
+    // TODO: FIREBASE INTEGRATION
+    // When ready to integrate Firebase, replace with:
+    // return query;
+
+    // Mock implementation
+    return query;
+  }
+
+  static Future<Stream<List<UsersRecord>>> queryStream({
+    Query Function(Query)? queryBuilder,
+    int limit = -1,
+    bool singleRecord = false,
+  }) async {
+    // TODO: FIREBASE INTEGRATION
+    // When ready to integrate Firebase, replace with:
+    // Query query = collection;
+    // if (queryBuilder != null) {
+    //   query = queryBuilder(query);
+    // }
+    // if (limit > 0 || singleRecord) {
+    //   query = query.limit(singleRecord ? 1 : limit);
+    // }
+    // return query.snapshots().map((snapshot) => snapshot.docs.map((doc) => UsersRecord.fromMap(doc.id, doc.data())).toList());
+
+    // Mock implementation
+    return Stream.value([]);
+  }
+
+  static Future<UsersRecord?> getDocumentFromData(
+    Map<String, dynamic> data,
+    String uid,
+  ) async {
+    // TODO: FIREBASE INTEGRATION
+    // When ready to integrate Firebase, replace with:
+    // return UsersRecord.fromMap(uid, data);
+
+    // Mock implementation
+    return null;
+  }
+
+  static UsersRecord fromMap(String uid, Map<String, dynamic> data) =>
+      UsersRecord(
+        uid: uid,
+        email: data['email'] as String?,
+        displayName: data['displayName'] as String?,
+        photoUrl: data['photoUrl'] as String?,
+        phoneNumber: data['phoneNumber'] as String?,
+        emailVerified: data['emailVerified'] as bool?,
+        createdTime: data['createdTime'] as DateTime?,
+        lastSignInTime: data['lastSignInTime'] as DateTime?,
+        role: data['role'] as String?,
+        settings: data['settings'] as Map<String, dynamic>?,
       );
 
-  static UsersRecord getDocumentFromData(
-    Map<String, dynamic> data,
-    DocumentReference reference,
-  ) =>
-      UsersRecord._(reference, mapFromFirestore(data));
+  static Future<UsersRecord?> getDocument(String uid) async {
+    // TODO: FIREBASE INTEGRATION
+    // When ready to integrate Firebase, replace with:
+    // final ref = collection.doc(uid);
+    // final doc = await ref.get();
+    // if (!doc.exists) return null;
+    // return UsersRecord.fromMap(uid, doc.data()!);
 
-  @override
-  String toString() =>
-      'UsersRecord(reference: ${reference.path}, data: $snapshotData)';
+    // Mock implementation
+    return null;
+  }
 
-  @override
-  int get hashCode => reference.path.hashCode;
+  static Future<void> deleteDocument(String uid) async {
+    // TODO: FIREBASE INTEGRATION
+    // When ready to integrate Firebase, replace with:
+    // final ref = collection.doc(uid);
+    // await ref.delete();
 
-  @override
-  bool operator ==(other) =>
-      other is UsersRecord &&
-      reference.path.hashCode == other.reference.path.hashCode;
+    // Mock implementation
+  }
+
+  static Future<DocumentReference> createDocument(UsersRecord data) async {
+    // TODO: FIREBASE INTEGRATION
+    // When ready to integrate Firebase, replace with:
+    // final ref = collection.doc();
+    // await ref.set(data.toMap());
+    // return ref;
+
+    // Mock implementation
+    return MockDocumentReference(
+        'users/${DateTime.now().millisecondsSinceEpoch}');
+  }
+
+  static Future<void> updateDocument(UsersRecord data) async {
+    // TODO: FIREBASE INTEGRATION
+    // When ready to integrate Firebase, replace with:
+    // final ref = collection.doc(data.uid);
+    // await ref.update(data.toMap());
+
+    // Mock implementation
+  }
+
+  Map<String, dynamic> toMap() => {
+        'email': email,
+        'displayName': displayName,
+        'photoUrl': photoUrl,
+        'phoneNumber': phoneNumber,
+        'emailVerified': emailVerified,
+        'createdTime': createdTime?.toIso8601String(),
+        'lastSignInTime': lastSignInTime?.toIso8601String(),
+        'role': role,
+        'settings': settings,
+      };
+
+  UsersRecord copyWith({
+    String? uid,
+    String? email,
+    String? displayName,
+    String? photoUrl,
+    String? phoneNumber,
+    bool? emailVerified,
+    DateTime? createdTime,
+    DateTime? lastSignInTime,
+    String? role,
+    Map<String, dynamic>? settings,
+  }) =>
+      UsersRecord(
+        uid: uid ?? this.uid,
+        email: email ?? this.email,
+        displayName: displayName ?? this.displayName,
+        photoUrl: photoUrl ?? this.photoUrl,
+        phoneNumber: phoneNumber ?? this.phoneNumber,
+        emailVerified: emailVerified ?? this.emailVerified,
+        createdTime: createdTime ?? this.createdTime,
+        lastSignInTime: lastSignInTime ?? this.lastSignInTime,
+        role: role ?? this.role,
+        settings: settings ?? this.settings,
+      );
+
+  // Additional getters for compatibility
+  String get shortDescription => displayName ?? email ?? uid;
+  DateTime? get lastActiveTime => lastSignInTime;
+  String get title => displayName ?? email ?? 'User';
 }
 
 Map<String, dynamic> createUsersRecordData({
@@ -141,10 +240,9 @@ Map<String, dynamic> createUsersRecordData({
   return firestoreData;
 }
 
-class UsersRecordDocumentEquality implements Equality<UsersRecord> {
+class UsersRecordDocumentEquality {
   const UsersRecordDocumentEquality();
 
-  @override
   bool equals(UsersRecord? e1, UsersRecord? e2) {
     return e1?.email == e2?.email &&
         e1?.displayName == e2?.displayName &&
@@ -158,20 +256,17 @@ class UsersRecordDocumentEquality implements Equality<UsersRecord> {
         e1?.title == e2?.title;
   }
 
-  @override
-  int hash(UsersRecord? e) => const ListEquality().hash([
-        e?.email,
-        e?.displayName,
-        e?.photoUrl,
-        e?.uid,
-        e?.createdTime,
-        e?.phoneNumber,
-        e?.shortDescription,
-        e?.lastActiveTime,
-        e?.role,
-        e?.title
-      ]);
+  int hash(UsersRecord? e) => Object.hash(
+      e?.email,
+      e?.displayName,
+      e?.photoUrl,
+      e?.uid,
+      e?.createdTime,
+      e?.phoneNumber,
+      e?.shortDescription,
+      e?.lastActiveTime,
+      e?.role,
+      e?.title);
 
-  @override
   bool isValidKey(Object? o) => o is UsersRecord;
 }
