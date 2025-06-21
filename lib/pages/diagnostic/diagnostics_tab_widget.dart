@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
-import 'package:o_b_d2_scanner_frontend/backend/api_requests/diagnostic_service.dart';
-import 'package:o_b_d2_scanner_frontend/pages/chat/chat_screen_widget.dart';
-import 'package:provider/provider.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:o_b_d2_scanner_frontend/backend/providers/app_state_provider.dart';
 import 'package:o_b_d2_scanner_frontend/backend/providers/chat_provider.dart';
 import 'package:o_b_d2_scanner_frontend/backend/providers/vehicle_provider.dart';
 import 'package:o_b_d2_scanner_frontend/pages/vehicles/add_vehicle_widget.dart';
 import 'package:o_b_d2_scanner_frontend/backend/schema/vehicle_record.dart';
+import 'package:o_b_d2_scanner_frontend/pages/diagnostic/scan_results_screen.dart';
+import 'package:o_b_d2_scanner_frontend/pages/chat/chat_screen_widget.dart';
+import 'package:o_b_d2_scanner_frontend/backend/api_requests/diagnostic_service.dart';
+import 'package:o_b_d2_scanner_frontend/widgets/enhanced_loading_widget.dart';
+import 'package:o_b_d2_scanner_frontend/widgets/enhanced_error_handler.dart';
+import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
+
 import '/flutter_flow/flutter_flow_theme.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'scan_results_screen.dart';
+import '/flutter_flow/flutter_flow_util.dart';
 
 // Recent chat model
 class RecentChat {
@@ -619,12 +625,19 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
       // Close scanning dialog
       Navigator.pop(context);
       
-      // Show error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Scan failed: $e'),
-          backgroundColor: Colors.red,
-        ),
+      // Show enhanced error message
+      EnhancedErrorHandler.showUserFriendlyError(
+        context,
+        'Failed to perform quick scan. Please check your OBD2 connection and try again.',
+        title: 'Scan Failed',
+        onRetry: () => _performDefaultScan(),
+        onDismiss: () {
+          EnhancedErrorHandler.showToast(
+            context,
+            'Quick scan cancelled',
+            type: ToastType.info,
+          );
+        },
       );
     }
   }
@@ -633,26 +646,25 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
     return AlertDialog(
       backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const CircularProgressIndicator(),
-          const SizedBox(height: 20),
-          Text(
-            'Scanning Vehicle...',
-            style: FlutterFlowTheme.of(context).titleMedium.copyWith(
-              fontWeight: FontWeight.bold,
+      content: SizedBox(
+        height: 200,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const EnhancedLoadingWidget(
+              message: 'Scanning Vehicle...',
+              type: LoadingType.spinner,
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Please wait while we analyze your vehicle systems',
-            style: FlutterFlowTheme.of(context).bodySmall.copyWith(
-              color: FlutterFlowTheme.of(context).secondaryText,
+            const SizedBox(height: 16),
+            Text(
+              'Please wait while we analyze your vehicle systems',
+              style: FlutterFlowTheme.of(context).bodySmall.copyWith(
+                color: FlutterFlowTheme.of(context).secondaryText,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -766,12 +778,19 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
       // Close scanning dialog
       Navigator.pop(context);
       
-      // Show error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Full scan failed: $e'),
-          backgroundColor: Colors.red,
-        ),
+      // Show enhanced error message
+      EnhancedErrorHandler.showUserFriendlyError(
+        context,
+        'Failed to perform full diagnostic scan. Please check your OBD2 connection and try again.',
+        title: 'Full Scan Failed',
+        onRetry: () => _performFullScan(),
+        onDismiss: () {
+          EnhancedErrorHandler.showToast(
+            context,
+            'Full scan cancelled',
+            type: ToastType.info,
+          );
+        },
       );
     }
   }
@@ -780,26 +799,26 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
     return AlertDialog(
       backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const CircularProgressIndicator(),
-          const SizedBox(height: 20),
-          Text(
-            'Performing Full Diagnostic Scan...',
-            style: FlutterFlowTheme.of(context).titleMedium.copyWith(
-              fontWeight: FontWeight.bold,
+      content: SizedBox(
+        height: 200,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const EnhancedLoadingWidget(
+              message: 'Performing Full Diagnostic Scan...',
+              type: LoadingType.progress,
+              progress: 0.6,
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'This comprehensive scan will analyze all vehicle systems',
-            style: FlutterFlowTheme.of(context).bodySmall.copyWith(
-              color: FlutterFlowTheme.of(context).secondaryText,
+            const SizedBox(height: 16),
+            Text(
+              'This comprehensive scan will analyze all vehicle systems',
+              style: FlutterFlowTheme.of(context).bodySmall.copyWith(
+                color: FlutterFlowTheme.of(context).secondaryText,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

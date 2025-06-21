@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 // import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path_provider/path_provider.dart';
@@ -104,10 +105,14 @@ class DataStorageService implements IDataStorageService {
   @override
   Future<void> clearCache(String userId) async {
     // Clear local cache directory
-    final cacheDir = await getTemporaryDirectory();
-    final appCacheDir = Directory('${cacheDir.path}/app_cache');
-    if (await appCacheDir.exists()) {
-      await appCacheDir.delete(recursive: true);
+    if (!kIsWeb) {
+      final cacheDir = await getTemporaryDirectory();
+      final appCacheDir = Directory('${cacheDir.path}/app_cache');
+      if (await appCacheDir.exists()) {
+        await appCacheDir.delete(recursive: true);
+      }
+    } else {
+      // On web, nothing to clear (memory-only cache)
     }
 
     // Update stats
@@ -209,6 +214,10 @@ class DataStorageService implements IDataStorageService {
 
   @override
   Future<int> getCacheSize() async {
+    if (kIsWeb) {
+      // On web, disk cache is not used
+      return 0;
+    }
     final cacheDir = await getTemporaryDirectory();
     final appCacheDir = Directory('${cacheDir.path}/app_cache');
     

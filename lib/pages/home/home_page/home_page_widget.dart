@@ -4,7 +4,10 @@ import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'package:o_b_d2_scanner_frontend/backend/providers/chat_provider.dart';
 import 'package:o_b_d2_scanner_frontend/backend/api_requests/diagnostic_service.dart';
 import 'package:o_b_d2_scanner_frontend/widgets/connection_status_widget.dart';
+import 'package:o_b_d2_scanner_frontend/widgets/enhanced_loading_widget.dart';
+import 'package:o_b_d2_scanner_frontend/widgets/enhanced_error_handler.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -2000,6 +2003,163 @@ class _HomePageWidgetState extends State<HomePageWidget> {
         vehicleVin: '5NPE34AF4FH012345',
       ),
     ];
+  }
+
+  Widget _buildEnhancedFeaturesDemo() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            FlutterFlowTheme.of(context).primary.withValues(alpha: 0.1),
+            FlutterFlowTheme.of(context).secondary.withValues(alpha: 0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: FlutterFlowTheme.of(context).primary.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.auto_awesome,
+                color: FlutterFlowTheme.of(context).primary,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Enhanced Features Demo',
+                style: FlutterFlowTheme.of(context).titleSmall.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: FlutterFlowTheme.of(context).primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Experience the latest enhancements including improved loading states, error handling, accessibility features, and more.',
+            style: FlutterFlowTheme.of(context).bodySmall.copyWith(
+              color: FlutterFlowTheme.of(context).secondaryText,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => _showLoadingDemo(),
+                  icon: const Icon(Icons.play_arrow, size: 16),
+                  label: const Text('Loading Demo'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: FlutterFlowTheme.of(context).primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => _showErrorDemo(),
+                  icon: const Icon(Icons.error_outline, size: 16),
+                  label: const Text('Error Demo'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: FlutterFlowTheme.of(context).warning,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                GoRouter.of(context).push('/enhanced-features-demo');
+              },
+              icon: const Icon(Icons.open_in_new, size: 16),
+              label: const Text('Full Enhanced Features Demo'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: FlutterFlowTheme.of(context).secondary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showLoadingDemo() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Enhanced Loading Demo'),
+        content: SizedBox(
+          height: 200,
+          child: Column(
+            children: [
+              const EnhancedLoadingWidget(
+                message: 'Connecting to vehicle...',
+                type: LoadingType.spinner,
+              ),
+              const SizedBox(height: 20),
+              const EnhancedLoadingWidget(
+                message: 'Scanning systems...',
+                type: LoadingType.progress,
+                progress: 0.7,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showErrorDemo() {
+    EnhancedErrorHandler.showUserFriendlyError(
+      context,
+      'This is a demonstration of the enhanced error handling system. It provides user-friendly error messages with retry options.',
+      title: 'Enhanced Error Demo',
+      onRetry: () {
+        Navigator.of(context).pop();
+        EnhancedErrorHandler.showToast(
+          context,
+          'Retry action performed successfully!',
+          type: ToastType.success,
+        );
+      },
+      onDismiss: () {
+        Navigator.of(context).pop();
+        EnhancedErrorHandler.showToast(
+          context,
+          'Error dismissed',
+          type: ToastType.info,
+        );
+      },
+    );
+  }
+
+  void _navigateToFullDemo() {
+    Navigator.of(context).pushNamed('/enhanced-features-demo');
   }
 }
 

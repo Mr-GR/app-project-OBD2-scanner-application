@@ -1,5 +1,6 @@
 import 'package:o_b_d2_scanner_frontend/index.dart';
 import 'package:o_b_d2_scanner_frontend/pages/onboarding_flow/auth_login/auth_login_model.dart';
+import 'package:o_b_d2_scanner_frontend/widgets/onboarding_tutorial_system.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -10,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:o_b_d2_scanner_frontend/pages/onboarding_flow/auth_forgot_password/auth_forgot_password_widget.dart';
 import 'package:o_b_d2_scanner_frontend/pages/home/main_tab_scaffold.dart';
+import 'package:go_router/go_router.dart';
 export 'auth_login_model.dart';
 
 class AuthLoginWidget extends StatefulWidget {
@@ -75,7 +77,7 @@ class _AuthLoginWidgetState extends State<AuthLoginWidget> {
             size: 30,
           ),
           onPressed: () async {
-            context.pop();
+            Navigator.of(context).pop();
           },
         ),
         elevation: 0,
@@ -173,13 +175,22 @@ class _AuthLoginWidgetState extends State<AuthLoginWidget> {
                         padding:
                             const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 0),
                         child: FFButtonWidget(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      const MainTabScaffold()),
-                            );
+                          onPressed: () async {
+                            // TODO: Implement actual authentication logic here
+                            // For now, just simulate successful login
+                            
+                            // Check if user has completed onboarding
+                            final isOnboardingComplete = await OnboardingTutorialSystem.isOnboardingComplete();
+                            
+                            if (mounted) {
+                              if (isOnboardingComplete) {
+                                // User has completed onboarding, go to main app
+                                GoRouter.of(context).go('/home');
+                              } else {
+                                // New user, show onboarding first
+                                GoRouter.of(context).go('/onboarding');
+                              }
+                            }
                           },
                           text: 'Login',
                           options: FFButtonOptions(

@@ -52,6 +52,7 @@ class CacheService {
     // Skip disk initialization on web platform
     if (kIsWeb) {
       print('CacheService: Running on web, using memory-only cache');
+      _cacheDir = null; // Ensure no disk cache is used
       return;
     }
     
@@ -65,6 +66,7 @@ class CacheService {
     } catch (e) {
       print('CacheService: Error initializing disk cache: $e');
       // Continue with memory-only cache
+      _cacheDir = null;
     }
   }
 
@@ -205,7 +207,7 @@ class CacheService {
 
   /// Write entry to disk
   Future<void> _writeToDisk<T>(String key, CacheEntry<T> entry) async {
-    if (_cacheDir == null) return;
+    if (kIsWeb || _cacheDir == null) return; // Never write to disk on web
     
     final file = File('${_cacheDir!.path}/${_sanitizeKey(key)}.cache');
     final data = {

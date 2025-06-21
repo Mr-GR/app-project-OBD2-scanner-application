@@ -1,8 +1,10 @@
 import 'package:o_b_d2_scanner_frontend/pages/onboarding_flow/auth_login/auth_login_widget.dart';
 import 'package:o_b_d2_scanner_frontend/pages/onboarding_flow/auth_create/auth_create_widget.dart';
+import 'package:o_b_d2_scanner_frontend/widgets/onboarding_tutorial_system.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class AuthWelcomeScreenWidget extends StatefulWidget {
   const AuthWelcomeScreenWidget({super.key});
@@ -54,6 +56,14 @@ class _AuthWelcomeScreenWidgetState extends State<AuthWelcomeScreenWidget>
   void initState() {
     super.initState();
     pageViewController = PageController(initialPage: 0);
+    // Remove automatic onboarding check - users should authenticate first
+  }
+
+  void _showOnboarding() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const OnboardingScreen()),
+    );
   }
 
   @override
@@ -211,6 +221,19 @@ class _AuthWelcomeScreenWidgetState extends State<AuthWelcomeScreenWidget>
                                   .secondaryBackground,
                             ),
                         borderRadius: BorderRadius.circular(50),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: () {
+                        GoRouter.of(context).push('/onboarding');
+                      },
+                      child: Text(
+                        'Take a Tour',
+                        style: FlutterFlowTheme.of(context).bodySmall.copyWith(
+                          color: FlutterFlowTheme.of(context).primary,
+                          decoration: TextDecoration.underline,
+                        ),
                       ),
                     ),
                   ],

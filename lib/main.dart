@@ -26,6 +26,10 @@ import 'package:o_b_d2_scanner_frontend/pages/profile/data_management_screen.dar
 import 'package:o_b_d2_scanner_frontend/pages/profile/support_screen.dart';
 import 'package:o_b_d2_scanner_frontend/pages/profile/upgrade_pro_screen.dart';
 import 'package:o_b_d2_scanner_frontend/pages/diagnostic/scan_results_screen.dart';
+import 'package:o_b_d2_scanner_frontend/widgets/integration_example.dart';
+import 'package:o_b_d2_scanner_frontend/backend/services/smart_cache_service.dart';
+import 'package:o_b_d2_scanner_frontend/widgets/accessibility_widgets.dart';
+import 'package:o_b_d2_scanner_frontend/widgets/onboarding_tutorial_system.dart';
 
 import '/flutter_flow/flutter_flow_theme.dart';
 import 'pages/onboarding_flow/auth_welcome/auth_welcome_screen_widget.dart';
@@ -66,6 +70,9 @@ void main() async {
   
   // Initialize service manager
   await ServiceManager().initialize();
+
+  // Initialize smart cache service
+  await SmartCacheService().initialize();
 
   runApp(MyApp());
 }
@@ -136,6 +143,14 @@ class _MyAppState extends State<MyApp> {
             darkTheme: FlutterFlowTheme.of(context).darkTheme,
             themeMode: _themeMode,
             routerConfig: _router,
+            builder: (context, child) {
+              return AccessibilityAwareWidget(
+                respectReducedMotion: true,
+                respectHighContrast: true,
+                respectTextScaling: true,
+                child: child!,
+              );
+            },
           );
         },
       ),
@@ -246,6 +261,14 @@ GoRouter createRouter() {
             ),
           );
         },
+      ),
+      GoRoute(
+        path: '/onboarding',
+        builder: (context, state) => const OnboardingScreen(),
+      ),
+      GoRoute(
+        path: '/enhanced-features-demo',
+        builder: (context, state) => const IntegrationExample(),
       ),
     ],
   );

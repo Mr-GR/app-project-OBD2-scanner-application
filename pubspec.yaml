@@ -94,6 +94,9 @@ dependencies:
   collection: ^1.19.1
   plugin_platform_interface: ^2.1.8
 
+  # PDF generation for diagnostic reports
+  pdf: ^3.10.7
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -1,9 +1,15 @@
-import 'package:o_b_d2_scanner_frontend/flutter_flow/flutter_flow_icon_button.dart';
+import 'package:o_b_d2_scanner_frontend/index.dart';
+import 'package:o_b_d2_scanner_frontend/pages/onboarding_flow/auth_create/auth_create_model.dart';
+import 'package:o_b_d2_scanner_frontend/widgets/onboarding_tutorial_system.dart';
+import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import 'package:flutter/material.dart';
-import 'auth_create_model.dart';
+import 'package:flutter/services.dart';
+import 'package:o_b_d2_scanner_frontend/pages/home/main_tab_scaffold.dart';
+import 'package:go_router/go_router.dart';
+export 'auth_create_model.dart';
 
 class AuthCreateWidget extends StatefulWidget {
   const AuthCreateWidget({super.key});
@@ -47,7 +53,7 @@ class _AuthCreateWidgetState extends State<AuthCreateWidget> {
             size: 30,
           ),
           onPressed: () async {
-            context.pop();
+            Navigator.of(context).pop();
           },
         ),
         actions: [],
@@ -123,15 +129,23 @@ class _AuthCreateWidgetState extends State<AuthCreateWidget> {
                         return;
                       }
 
-                      // TODO: Implement password reset functionality
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                              'Password reset functionality not implemented yet.'),
-                        ),
-                      );
+                      // TODO: Implement actual account creation logic here
+                      // For now, just simulate successful account creation
+                      
+                      // Check if user has completed onboarding
+                      final isOnboardingComplete = await OnboardingTutorialSystem.isOnboardingComplete();
+                      
+                      if (mounted) {
+                        if (isOnboardingComplete) {
+                          // User has completed onboarding, go to main app
+                          GoRouter.of(context).go('/home');
+                        } else {
+                          // New user, show onboarding first
+                          GoRouter.of(context).go('/onboarding');
+                        }
+                      }
                     },
-                    text: 'Submit',
+                    text: 'Create Account',
                     options: FFButtonOptions(
                       width: double.infinity,
                       height: 60.0,
