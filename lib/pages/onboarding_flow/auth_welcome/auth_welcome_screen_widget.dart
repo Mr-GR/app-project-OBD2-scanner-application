@@ -100,6 +100,7 @@ class _AuthWelcomeScreenWidgetState extends State<AuthWelcomeScreenWidget>
 
   @override
   Widget build(BuildContext context) {
+    print('AuthWelcomeScreenWidget build called');
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -136,6 +137,14 @@ class _AuthWelcomeScreenWidgetState extends State<AuthWelcomeScreenWidget>
                             width: 120,
                             height: 160,
                             fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              color: Colors.grey[200],
+                              child: Icon(
+                                Icons.directions_car,
+                                size: 40,
+                                color: Colors.grey,
+                              ),
+                            ),
                           ),
                         );
                       },

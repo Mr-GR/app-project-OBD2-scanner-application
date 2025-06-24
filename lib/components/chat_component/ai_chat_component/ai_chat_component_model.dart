@@ -1,4 +1,3 @@
-import '/backend/api_requests/api_calls.dart';
 import '/components/chat_component/writing_indicator/writing_indicator_widget.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'ai_chat_component_widget.dart' show AiChatComponentWidget;
@@ -23,8 +22,6 @@ class AiChatComponentModel extends FlutterFlowModel<AiChatComponentWidget> {
   FocusNode? textFieldFocusNode;
   TextEditingController? textController;
   String? Function(BuildContext, String?)? textControllerValidator;
-  // Stores action output result for [Backend Call - API (Send Full Prompt)] action in IconButton widget.
-  ApiCallResponse? chatGPTResponse;
 
   @override
   void initState(BuildContext context) {

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import 'package:o_b_d2_scanner_frontend/flutter_flow/flutter_flow_icon_button.dart';
 import 'package:o_b_d2_scanner_frontend/pages/chat/ai_chat_widget.dart';
 import 'package:o_b_d2_scanner_frontend/pages/manual_configuration/manual_configuration_widget.dart';
@@ -40,6 +41,13 @@ class _HomePageWidgetState extends State<HomePageWidget> {
     _model.dispose();
     super.dispose();
   }
+=======
+import 'package:flutter/material.dart';
+import '../../../flutter_flow/flutter_flow_theme.dart';
+
+class HomePageWidget extends StatelessWidget {
+  const HomePageWidget({Key? key}) : super(key: key);
+>>>>>>> f478dc7 (Update all files to ensure clean structure)
 
   void _onItemTapped(int index) {
     setState(() {
@@ -49,6 +57,7 @@ class _HomePageWidgetState extends State<HomePageWidget> {
 
   @override
   Widget build(BuildContext context) {
+<<<<<<< HEAD
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -297,6 +306,14 @@ class _HomePageWidgetState extends State<HomePageWidget> {
             ),
           ],
         ),
+=======
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Home'),
+      ),
+      body: Center(
+        child: Text('Home Page (UI template)'),
+>>>>>>> f478dc7 (Update all files to ensure clean structure)
       ),
     );
   }

@@ -1,4 +1,3 @@
-import '/backend/api_requests/api_calls.dart';
 import '/components/chat_component/empty_list/empty_list_widget.dart';
 import '/components/chat_component/writing_indicator/writing_indicator_widget.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
@@ -14,7 +13,7 @@ import 'ai_chat_component_model.dart';
 export 'ai_chat_component_model.dart';
 
 class AiChatComponentWidget extends StatefulWidget {
-  const AiChatComponentWidget({super.key});
+  const AiChatComponentWidget({Key? key}) : super(key: key);
 
   @override
   State<AiChatComponentWidget> createState() => _AiChatComponentWidgetState();
@@ -22,43 +21,35 @@ class AiChatComponentWidget extends StatefulWidget {
 
 class _AiChatComponentWidgetState extends State<AiChatComponentWidget> {
   late AiChatComponentModel _model;
-
-  @override
-  void setState(VoidCallback callback) {
-    super.setState(callback);
-    _model.onUpdate();
-  }
+  final TextEditingController _textController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _model = createModel(context, () => AiChatComponentModel());
-
-    _model.textController ??= TextEditingController();
-    _model.textFieldFocusNode ??= FocusNode();
+    _model = AiChatComponentModel();
   }
 
   @override
   void dispose() {
+<<<<<<< HEAD
     _model.maybeDispose();
 
+=======
+    _textController.dispose();
+>>>>>>> f478dc7 (Update all files to ensure clean structure)
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: AlignmentDirectional(0.0, 0.0),
-      child: Container(
-        width: double.infinity,
-        height: double.infinity,
-        constraints: BoxConstraints(
-          maxWidth: 770.0,
-        ),
-        decoration: BoxDecoration(),
+    return Card(
+      margin: const EdgeInsets.all(16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+<<<<<<< HEAD
             Expanded(
               child: Align(
                 alignment: AlignmentDirectional(0.0, -1.0),
@@ -721,17 +712,26 @@ class _AiChatComponentWidgetState extends State<AiChatComponentWidget> {
                   ],
                 ),
               ),
-            ),
-            if (responsiveVisibility(
-              context: context,
-              phone: false,
-              tablet: false,
-            ))
-              Container(
-                width: 100.0,
-                height: 60.0,
-                decoration: BoxDecoration(),
+=======
+            Text('AI Chat (UI template)', style: FlutterFlowTheme.of(context).titleMedium),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _textController,
+              decoration: InputDecoration(
+                hintText: 'Type your message...',
+                border: OutlineInputBorder(),
               ),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () {},
+              child: Text('Send'),
+>>>>>>> f478dc7 (Update all files to ensure clean structure)
+            ),
+            const SizedBox(height: 24),
+            EmptyListWidget(),
+            const SizedBox(height: 12),
+            WritingIndicatorWidget(),
           ],
         ),
       ),

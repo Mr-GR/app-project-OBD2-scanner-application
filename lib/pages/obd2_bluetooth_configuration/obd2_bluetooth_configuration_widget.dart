@@ -1,8 +1,5 @@
-import 'package:o_b_d2_scanner_frontend/pages/manual_configuration/manual_configuration_model.dart';
-
-import '/flutter_flow/flutter_flow_theme.dart';
-import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import 'package:google_fonts/google_fonts.dart';
 
 class Obd2BluetoothConfigurationWidget extends StatefulWidget {
@@ -28,10 +25,17 @@ class _Obd2BluetoothConfigurationWidgetState extends State<Obd2BluetoothConfigur
     _model.dispose();
     super.dispose();
   }
+=======
+import '../../flutter_flow/flutter_flow_theme.dart';
+
+class Obd2BluetoothConfigurationWidget extends StatelessWidget {
+  const Obd2BluetoothConfigurationWidget({Key? key}) : super(key: key);
+>>>>>>> f478dc7 (Update all files to ensure clean structure)
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+<<<<<<< HEAD
       key: scaffoldKey,
       backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
       appBar: AppBar(
@@ -53,9 +57,22 @@ class _Obd2BluetoothConfigurationWidgetState extends State<Obd2BluetoothConfigur
                 fontStyle:
                     FlutterFlowTheme.of(context).displaySmall.fontStyle,
               ),
+=======
+      appBar: AppBar(
+        title: Text('OBD2 Bluetooth Configuration'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('OBD2 Bluetooth Configuration (UI template)', style: FlutterFlowTheme.of(context).titleMedium),
+            const SizedBox(height: 16),
+            Text('This is a placeholder for OBD2 Bluetooth configuration.'),
+          ],
+>>>>>>> f478dc7 (Update all files to ensure clean structure)
         ),
       ),
-      body: Container(),
     );
   }
 }

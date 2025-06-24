@@ -9,7 +9,6 @@ import 'package:from_css_color/from_css_color.dart';
 import 'dart:math' show pow, pi, sin;
 import 'package:intl/intl.dart';
 import 'package:json_path/json_path.dart';
-import 'package:timeago/timeago.dart' as timeago;
 import 'package:url_launcher/url_launcher.dart';
 
 import '../main.dart';
@@ -36,7 +35,7 @@ String dateTimeFormat(String format, DateTime? dateTime, {String? locale}) {
     return '';
   }
   if (format == 'relative') {
-    return timeago.format(dateTime, locale: locale, allowFromNow: true);
+    // return timeago.format(dateTime, locale: locale, allowFromNow: true);
   }
   return DateFormat(format, locale).format(dateTime);
 }

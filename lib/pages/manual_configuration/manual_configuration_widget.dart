@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:o_b_d2_scanner_frontend/pages/manual_configuration/manual_configuration_model.dart';
@@ -37,6 +38,13 @@ class _ManualConfigurationWidgetState
     vinController.dispose();
     super.dispose();
   }
+=======
+import 'package:flutter/material.dart';
+import '../../flutter_flow/flutter_flow_theme.dart';
+
+class ManualConfigurationWidget extends StatelessWidget {
+  const ManualConfigurationWidget({Key? key}) : super(key: key);
+>>>>>>> f478dc7 (Update all files to ensure clean structure)
 
   void _handleSubmit() async {
     final vin = vinController.text.trim().toUpperCase();
@@ -83,6 +91,7 @@ class _ManualConfigurationWidgetState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+<<<<<<< HEAD
       key: scaffoldKey,
       backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
       appBar: AppBar(
@@ -104,6 +113,20 @@ class _ManualConfigurationWidgetState
                 ),
                 color: FlutterFlowTheme.of(context).primaryText,
               ),
+=======
+      appBar: AppBar(
+        title: Text('Manual Configuration'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Manual Configuration (UI template)', style: FlutterFlowTheme.of(context).titleMedium),
+            const SizedBox(height: 16),
+            Text('This is a placeholder for manual configuration.'),
+          ],
+>>>>>>> f478dc7 (Update all files to ensure clean structure)
         ),
         centerTitle: true,
       ),

@@ -2,7 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:go_router/go_router.dart';
+<<<<<<< HEAD
 import 'package:o_b_d2_scanner_frontend/pages/onboarding_flow/auth_forgot_password/auth_forgot_password_widget.dart';
+=======
+import 'package:o_b_d2_scanner_frontend/pages/chat/chat_screen_widget.dart';
+import 'package:o_b_d2_scanner_frontend/pages/chat/chat_test_widget.dart';
+import 'package:o_b_d2_scanner_frontend/pages/home/main_tab_scaffold.dart';
+import 'package:o_b_d2_scanner_frontend/pages/settings/connection_settings_widget.dart';
+import 'package:o_b_d2_scanner_frontend/pages/profile/profile_settings_screen.dart';
+import 'package:o_b_d2_scanner_frontend/pages/profile/subscription_details_screen.dart';
+import 'package:o_b_d2_scanner_frontend/pages/profile/payment_methods_screen.dart';
+import 'package:o_b_d2_scanner_frontend/pages/profile/account_history_screen.dart';
+import 'package:o_b_d2_scanner_frontend/pages/profile/personal_information_screen.dart';
+import 'package:o_b_d2_scanner_frontend/pages/profile/notification_settings_screen.dart';
+import 'package:o_b_d2_scanner_frontend/pages/profile/obd2_devices_screen.dart';
+import 'package:o_b_d2_scanner_frontend/pages/profile/appearance_settings_screen.dart';
+import 'package:o_b_d2_scanner_frontend/pages/profile/data_storage_settings_screen.dart';
+import 'package:o_b_d2_scanner_frontend/pages/profile/security_settings_screen.dart';
+import 'package:o_b_d2_scanner_frontend/pages/profile/data_management_screen.dart';
+import 'package:o_b_d2_scanner_frontend/pages/profile/support_screen.dart';
+import 'package:o_b_d2_scanner_frontend/pages/profile/upgrade_pro_screen.dart';
+import 'package:o_b_d2_scanner_frontend/pages/diagnostic/scan_results_screen.dart';
+import 'package:o_b_d2_scanner_frontend/widgets/integration_example.dart';
+import 'package:o_b_d2_scanner_frontend/widgets/accessibility_widgets.dart';
+import 'package:o_b_d2_scanner_frontend/widgets/onboarding_tutorial_system.dart';
+>>>>>>> f478dc7 (Update all files to ensure clean structure)
 
 import '/flutter_flow/flutter_flow_theme.dart';
 import 'flutter_flow/flutter_flow_util.dart';
@@ -68,6 +92,7 @@ class _MyAppState extends State<MyApp> {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: const [Locale('en', '')],
+<<<<<<< HEAD
       theme: ThemeData(
         brightness: Brightness.light,
         useMaterial3: false,
@@ -78,13 +103,27 @@ class _MyAppState extends State<MyApp> {
       ),
       themeMode: _themeMode,
       routerConfig: _router,
+=======
+      theme: FlutterFlowTheme.of(context).theme,
+      darkTheme: FlutterFlowTheme.of(context).darkTheme,
+      themeMode: _themeMode,
+      routerConfig: _router,
+      builder: (context, child) {
+        return AccessibilityAwareWidget(
+          respectReducedMotion: true,
+          respectHighContrast: true,
+          respectTextScaling: true,
+          child: child!,
+        );
+      },
+>>>>>>> f478dc7 (Update all files to ensure clean structure)
     );
   }
 }
 
 GoRouter createRouter() {
   return GoRouter(
-    initialLocation: '/authWelcomeScreen',
+    initialLocation: '/onboarding',
     routes: [
       GoRoute(
         path: '/authWelcomeScreen',
