@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter/services.dart';
 
 Widget wrapWithModel<T extends FlutterFlowModel>({
   required T model,
@@ -18,18 +18,16 @@ Widget wrapWithModel<T extends FlutterFlowModel>({
   // so we don't want the component widget to dispose them until the page is
   // itself disposed.
   model.disposeOnWidgetDisposal = false;
-  // Wrap in a Provider so that the model can be accessed by the component.
-  return Provider<T>.value(
-    value: model,
-    child: child,
-  );
+  // Return the child directly since we're not using providers
+  return child;
 }
 
 T createModel<T extends FlutterFlowModel>(
   BuildContext context,
   T Function() defaultBuilder,
 ) {
-  final model = context.read<T?>() ?? defaultBuilder();
+  // Create a new model instance since we're not using providers
+  final model = defaultBuilder();
   model._init(context);
   return model;
 }

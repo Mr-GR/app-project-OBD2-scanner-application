@@ -1,4 +1,4 @@
-import '/components/chat_component/ai_chat_component/ai_chat_component_widget.dart';
+import '/components/chat_component/ai_chat_component/ai_chat_component_model.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/index.dart';
 import 'chat_ai_screen_widget.dart' show ChatAiScreenWidget;

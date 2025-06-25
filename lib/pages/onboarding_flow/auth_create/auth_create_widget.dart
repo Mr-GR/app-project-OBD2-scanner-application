@@ -1,13 +1,10 @@
-import 'package:o_b_d2_scanner_frontend/flutter_flow/flutter_flow_icon_button.dart';
-import '/flutter_flow/flutter_flow_animations.dart';
+import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'auth_create_model.dart';
-import '/auth/firebase_auth/auth_util.dart';
 
 class AuthCreateWidget extends StatefulWidget {
   const AuthCreateWidget({super.key});
@@ -49,7 +46,7 @@ class _AuthCreateWidgetState extends State<AuthCreateWidget> {
             size: 30,
           ),
           onPressed: () async {
-            context.pop();
+            GoRouter.of(context).pop();
           },
         ),
         actions: [],
@@ -64,41 +61,22 @@ class _AuthCreateWidgetState extends State<AuthCreateWidget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding:
-                      const EdgeInsetsDirectional.fromSTEB(12, 32, 0, 8),
+                  padding: const EdgeInsetsDirectional.fromSTEB(12, 32, 0, 8),
                   child: Text(
                     'Create an account to get started!',
-                    style: FlutterFlowTheme.of(context)
-                        .displayMedium
-                        .override(
-                          font: GoogleFonts.interTight(),
-                          letterSpacing: 0.0,
-                          fontWeight: FlutterFlowTheme.of(context)
-                              .displayMedium
-                              .fontWeight,
-                          fontStyle: FlutterFlowTheme.of(context)
-                              .displayMedium
-                              .fontStyle,
-                        ),
+                    style: FlutterFlowTheme.of(context).displayMedium.copyWith(
+                      letterSpacing: 0.0,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 Padding(
-                  padding:
-                      const EdgeInsetsDirectional.fromSTEB(12, 0, 12, 12),
+                  padding: const EdgeInsetsDirectional.fromSTEB(12, 0, 12, 12),
                   child: Text(
                     'Get answer about your vehicle quick.',
-                    style: FlutterFlowTheme.of(context)
-                        .labelLarge
-                        .override(
-                          font: GoogleFonts.inter(),
-                          letterSpacing: 0.0,
-                          fontWeight: FlutterFlowTheme.of(context)
-                              .labelLarge
-                              .fontWeight,
-                          fontStyle: FlutterFlowTheme.of(context)
-                              .labelLarge
-                              .fontStyle,
-                        ),
+                    style: FlutterFlowTheme.of(context).labelLarge.copyWith(
+                      letterSpacing: 0.0,
+                    ),
                   ),
                 ),
                 _buildTextField(
@@ -120,8 +98,7 @@ class _AuthCreateWidgetState extends State<AuthCreateWidget> {
                 _buildPasswordField(context),
                 const SizedBox(height: 24),
                 Padding(
-                  padding: const EdgeInsetsDirectional.fromSTEB(
-                      16.0, 12.0, 16.0, 24.0),
+                  padding: const EdgeInsetsDirectional.fromSTEB(16.0, 12.0, 16.0, 24.0),
                   child: FFButtonWidget(
                     onPressed: () async {
                       if (_model.emailAddressTextController.text.isEmpty) {
@@ -132,35 +109,21 @@ class _AuthCreateWidgetState extends State<AuthCreateWidget> {
                         );
                         return;
                       }
-
-                      await authManager.resetPassword(
-                        email: _model.emailAddressTextController.text,
-                        context: context,
-                      );
+                      // Placeholder for account creation
+                      GoRouter.of(context).push('/home');
                     },
                     text: 'Submit',
                     options: FFButtonOptions(
                       width: double.infinity,
                       height: 60.0,
-                      padding: const EdgeInsetsDirectional.fromSTEB(
-                          0.0, 0.0, 0.0, 0.0),
-                      iconPadding: const EdgeInsetsDirectional.fromSTEB(
-                          0.0, 0.0, 0.0, 0.0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                      iconPadding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
                       color: FlutterFlowTheme.of(context).primaryText,
-                      textStyle: FlutterFlowTheme.of(context)
-                          .titleMedium
-                          .override(
-                            font: GoogleFonts.interTight(),
-                            color:
-                                FlutterFlowTheme.of(context).secondaryBackground,
-                            letterSpacing: 0.0,
-                            fontWeight: FlutterFlowTheme.of(context)
-                                .titleMedium
-                                .fontWeight,
-                            fontStyle: FlutterFlowTheme.of(context)
-                                .titleMedium
-                                .fontStyle,
-                          ),
+                      textStyle: FlutterFlowTheme.of(context).titleMedium.copyWith(
+                        color: FlutterFlowTheme.of(context).secondaryBackground,
+                        letterSpacing: 0.0,
+                        fontWeight: FontWeight.w600,
+                      ),
                       elevation: 4.0,
                       borderSide: const BorderSide(
                         color: Colors.transparent,
@@ -211,14 +174,12 @@ class _AuthCreateWidgetState extends State<AuthCreateWidget> {
         obscureText: !_model.passwordVisibility,
         decoration: _buildInputDecoration(context, 'Password').copyWith(
           suffixIcon: InkWell(
-            onTap: () => setState(
-              () => _model.passwordVisibility = !_model.passwordVisibility,
-            ),
+            onTap: () => safeSetState(() => _model.passwordVisibility = !_model.passwordVisibility),
+            focusNode: FocusNode(skipTraversal: true),
             child: Icon(
-              _model.passwordVisibility
-                  ? Icons.visibility_outlined
-                  : Icons.visibility_off_outlined,
+              _model.passwordVisibility ? Icons.visibility_outlined : Icons.visibility_off_outlined,
               color: FlutterFlowTheme.of(context).primaryText,
+              size: 24,
             ),
           ),
         ),
@@ -232,38 +193,38 @@ class _AuthCreateWidgetState extends State<AuthCreateWidget> {
   InputDecoration _buildInputDecoration(BuildContext context, String label) {
     return InputDecoration(
       labelText: label,
-      labelStyle: FlutterFlowTheme.of(context).labelLarge,
-      errorStyle: FlutterFlowTheme.of(context).labelMedium.copyWith(
-        color: FlutterFlowTheme.of(context).error,
-        height: 1.5,
-      ),
-      enabledBorder: UnderlineInputBorder(
+      labelStyle: FlutterFlowTheme.of(context).labelMedium,
+      enabledBorder: OutlineInputBorder(
         borderSide: BorderSide(
           color: FlutterFlowTheme.of(context).alternate,
           width: 2,
         ),
+        borderRadius: BorderRadius.circular(8),
       ),
-      focusedBorder: UnderlineInputBorder(
+      focusedBorder: OutlineInputBorder(
         borderSide: BorderSide(
           color: FlutterFlowTheme.of(context).primary,
           width: 2,
         ),
+        borderRadius: BorderRadius.circular(8),
       ),
-      errorBorder: UnderlineInputBorder(
+      errorBorder: OutlineInputBorder(
         borderSide: BorderSide(
           color: FlutterFlowTheme.of(context).error,
           width: 2,
         ),
+        borderRadius: BorderRadius.circular(8),
       ),
-      focusedErrorBorder: UnderlineInputBorder(
+      focusedErrorBorder: OutlineInputBorder(
         borderSide: BorderSide(
           color: FlutterFlowTheme.of(context).error,
           width: 2,
         ),
+        borderRadius: BorderRadius.circular(8),
       ),
       filled: true,
       fillColor: FlutterFlowTheme.of(context).secondaryBackground,
-      contentPadding: const EdgeInsetsDirectional.fromSTEB(0, 16, 16, 8),
+      contentPadding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 16),
     );
   }
 }

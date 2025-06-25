@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
-import 'package:o_b_d2_scanner_frontend/flutter_flow/custom_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/index.dart';
 import '/config.dart';
 import 'package:http/http.dart' as http;
+import 'package:go_router/go_router.dart';
 
 class AiChatWidget extends StatefulWidget {
   const AiChatWidget({super.key});
@@ -24,10 +24,22 @@ class _AiChatWidgetState extends State<AiChatWidget> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   bool isAwaitingResponse = false;
+  String? selectedLevel; // 'beginner' or 'expert'
 
   List<Map<String, String>> messages = [];
 
   Future<void> sendMessage(String question) async {
+    // Check if level is selected
+    if (selectedLevel == null) {
+      setState(() {
+        messages.add({
+          'role': 'ai',
+          'text': 'Please select your experience level before asking a question:\n\n**BEGINNER**: New to car maintenance, prefer simple explanations and basic steps\n**EXPERT**: Experienced with automotive work, want detailed technical information',
+        });
+      });
+      return;
+    }
+
     setState(() {
       messages.add({'role': 'user', 'text': question});
       isAwaitingResponse = true;
@@ -35,9 +47,7 @@ class _AiChatWidgetState extends State<AiChatWidget> {
 
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token');
-    final url = Uri.parse('http://${Config.baseUrl}:8080/ask');
-
-    await Future.delayed(const Duration(seconds: 2)); // typing delay
+    final url = Uri.parse('http://${Config.baseUrl}/api/ask');
 
     try {
       final response = await http.post(
@@ -46,7 +56,10 @@ class _AiChatWidgetState extends State<AiChatWidget> {
           'Content-Type': 'application/json',
           if (token != null) 'Authorization': 'Bearer $token',
         },
-        body: jsonEncode({'question': question}),
+        body: jsonEncode({
+          'question': question,
+          'level': selectedLevel,
+        }),
       );
 
       if (response.statusCode == 200) {
@@ -81,10 +94,92 @@ class _AiChatWidgetState extends State<AiChatWidget> {
     );
   }
 
+  Widget _buildLevelSelector() {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: FlutterFlowTheme.of(context).secondaryBackground,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: FlutterFlowTheme.of(context).primary.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Select Your Experience Level',
+            style: FlutterFlowTheme.of(context).titleMedium,
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildLevelButton('beginner', 'BEGINNER', Icons.school),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildLevelButton('expert', 'EXPERT', Icons.engineering),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLevelButton(String level, String label, IconData icon) {
+    final isSelected = selectedLevel == level;
+    return InkWell(
+      onTap: () {
+        setState(() {
+          selectedLevel = level;
+        });
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? FlutterFlowTheme.of(context).primary 
+              : FlutterFlowTheme.of(context).primaryBackground,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected 
+                ? FlutterFlowTheme.of(context).primary 
+                : FlutterFlowTheme.of(context).primary.withOpacity(0.3),
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              color: isSelected 
+                  ? Colors.white 
+                  : FlutterFlowTheme.of(context).primary,
+              size: 24,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: FlutterFlowTheme.of(context).bodySmall.copyWith(
+                color: isSelected 
+                    ? Colors.white 
+                    : FlutterFlowTheme.of(context).primary,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildBubble(Map<String, String> message) {
     final isUser = message['role'] == 'user';
-    final bgColor = FlutterFlowTheme.of(context).secondaryBackground;
-    const textColor = Colors.white;
+    final bgColor = isUser 
+        ? FlutterFlowTheme.of(context).primary 
+        : FlutterFlowTheme.of(context).secondaryBackground;
+    final textColor = isUser ? Colors.white : Colors.white;
 
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
@@ -95,14 +190,10 @@ class _AiChatWidgetState extends State<AiChatWidget> {
           if (!isUser)
             Padding(
               padding: const EdgeInsets.only(right: 6.0),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(4.0),
-                child: Image.asset(
-                  'assets/images/Subtract_(3).png',
-                  width: 20.0,
-                  height: 20.0,
-                  fit: BoxFit.cover,
-                ),
+              child: CircleAvatar(
+                radius: 14,
+                backgroundColor: FlutterFlowTheme.of(context).primary,
+                child: Icon(Icons.person, color: Colors.white, size: 18),
               ),
             ),
           Flexible(
@@ -118,7 +209,7 @@ class _AiChatWidgetState extends State<AiChatWidget> {
               ),
               child: Text(
                 message['text'] ?? '',
-                style: const TextStyle(color: textColor, fontSize: 16),
+                style: TextStyle(color: textColor, fontSize: 16),
               ),
             ),
           ),
@@ -152,8 +243,8 @@ class _AiChatWidgetState extends State<AiChatWidget> {
                   children: [
                     Text(
                       'Get Pro',
-                      style: FlutterFlowTheme.of(context).bodyMedium.override(
-                            fontFamily: 'Urbanist',
+                      style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
+                            fontWeight: FontWeight.bold,
                             letterSpacing: 0.0,
                           ),
                     ),
@@ -172,12 +263,7 @@ class _AiChatWidgetState extends State<AiChatWidget> {
               alignment: Alignment.centerLeft,
               child: GestureDetector(
                 onTap: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const HomePageWidget(),
-                    ),
-                  );
+                  GoRouter.of(context).push('/home');
                 },
                 child: Padding(
                   padding: const EdgeInsets.only(left: 8.0),
@@ -197,7 +283,7 @@ class _AiChatWidgetState extends State<AiChatWidget> {
                 child: Padding(
                   padding: const EdgeInsets.only(right: 8.0),
                   child: Icon(
-                    FFIcons.kmenu,
+                    Icons.menu,
                     color: FlutterFlowTheme.of(context).primaryText,
                     size: 28.0,
                   ),
@@ -210,11 +296,18 @@ class _AiChatWidgetState extends State<AiChatWidget> {
       body: SafeArea(
         child: Column(
           children: [
+            // Chat history
             Expanded(
               child: ListView(
                 controller: _scrollController,
                 padding: const EdgeInsets.all(16),
                 children: [
+                  // Welcome message if no level selected
+                  if (selectedLevel == null)
+                    _buildBubble({
+                      'role': 'ai',
+                      'text': 'Welcome! I\'m your automotive AI assistant. Please select your experience level below to get started.',
+                    }),
                   ...messages.map(_buildBubble).toList(),
                   if (isAwaitingResponse)
                     Align(
@@ -246,16 +339,17 @@ class _AiChatWidgetState extends State<AiChatWidget> {
                 ],
               ),
             ),
+            // Level selector just above input
+            if (selectedLevel == null) _buildLevelSelector(),
+            // Input area
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               color: Colors.transparent,
               child: Row(
                 children: [
                   IconButton(
-                    icon: Icon(
-                      FFIcons.kattachment,
-                      color: FlutterFlowTheme.of(context).secondaryText,
-                    ),
+                    icon: const Icon(Icons.attachment),
+                    color: FlutterFlowTheme.of(context).secondaryText,
                     onPressed: () {
                       // TODO: Add file picker logic
                     },
@@ -269,7 +363,9 @@ class _AiChatWidgetState extends State<AiChatWidget> {
                         }
                       },
                       decoration: InputDecoration(
-                        hintText: 'Ask me an IT question..',
+                        hintText: selectedLevel == null 
+                            ? 'Select your level first...' 
+                            : 'Ask me about your vehicle...',
                         filled: true,
                         fillColor: FlutterFlowTheme.of(context).secondaryBackground,
                         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -282,10 +378,8 @@ class _AiChatWidgetState extends State<AiChatWidget> {
                   ),
                   const SizedBox(width: 5),
                   IconButton(
-                    icon: Icon(
-                      FFIcons.kmicrophone11,
-                      color: FlutterFlowTheme.of(context).secondaryText,
-                    ),
+                    icon: const Icon(Icons.mic),
+                    color: FlutterFlowTheme.of(context).secondaryText,
                     onPressed: () {
                       // TODO: Add mic input logic
                     },
@@ -311,11 +405,11 @@ class _AiChatWidgetState extends State<AiChatWidget> {
                         }
                       },
                       borderRadius: BorderRadius.circular(100),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12.0),
+                      child: const Padding(
+                        padding: EdgeInsets.all(12.0),
                         child: Icon(
-                          FFIcons.ksend238,
-                          color: FlutterFlowTheme.of(context).info,
+                          Icons.send,
+                          color: Colors.white,
                           size: 24.0,
                         ),
                       ),

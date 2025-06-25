@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,11 +8,9 @@ import 'package:from_css_color/from_css_color.dart';
 import 'dart:math' show pow, pi, sin;
 import 'package:intl/intl.dart';
 import 'package:json_path/json_path.dart';
-import 'package:timeago/timeago.dart' as timeago;
 import 'package:url_launcher/url_launcher.dart';
 
 import '../main.dart';
-
 
 export 'lat_lng.dart';
 export 'place.dart';
@@ -23,10 +20,7 @@ export 'dart:math' show min, max;
 export 'dart:typed_data' show Uint8List;
 export 'dart:convert' show jsonEncode, jsonDecode;
 export 'package:intl/intl.dart';
-export 'package:cloud_firestore/cloud_firestore.dart'
-    show DocumentReference, FirebaseFirestore;
 export 'package:page_transition/page_transition.dart';
-export 'nav/nav.dart';
 
 T valueOrDefault<T>(T? value, T defaultValue) =>
     (value is String && value.isEmpty) || value == null ? defaultValue : value;
@@ -36,7 +30,7 @@ String dateTimeFormat(String format, DateTime? dateTime, {String? locale}) {
     return '';
   }
   if (format == 'relative') {
-    return timeago.format(dateTime, locale: locale, allowFromNow: true);
+    // return timeago.format(dateTime, locale: locale, allowFromNow: true);
   }
   return DateFormat(format, locale).format(dateTime);
 }
@@ -267,9 +261,10 @@ extension IterableExt<T> on Iterable<T> {
       .toList();
 }
 
-extension StringDocRef on String {
-  DocumentReference get ref => FirebaseFirestore.instance.doc(this);
-}
+// Firebase-related code removed for UI-only template
+// extension StringDocRef on String {
+//   DocumentReference get ref => FirebaseFirestore.instance.doc(this);
+// }
 
 void setDarkModeSetting(BuildContext context, ThemeMode themeMode) =>
     MyApp.of(context).setThemeMode(themeMode);

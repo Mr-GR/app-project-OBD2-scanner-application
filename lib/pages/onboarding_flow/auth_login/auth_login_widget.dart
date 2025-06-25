@@ -1,17 +1,13 @@
-import 'package:o_b_d2_scanner_frontend/index.dart';
-import 'package:o_b_d2_scanner_frontend/pages/onboarding_flow/auth_login/auth_login_model.dart';
-import 'package:o_b_d2_scanner_frontend/pages/onboarding_flow/auth_forgot_password/auth_forgot_password_widget.dart';
-
-import '/auth/firebase_auth/auth_util.dart';
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'package:go_router/go_router.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
-import 'dart:async';
-import 'package:flutter/material.dart';
-import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
-import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '/pages/home/home_page/home_page_widget.dart';
+import 'auth_login_model.dart';
 
 class AuthLoginWidget extends StatefulWidget {
   const AuthLoginWidget({super.key});
@@ -62,7 +58,7 @@ class _AuthLoginWidgetState extends State<AuthLoginWidget> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: scaffoldKey,
-      backgroundColor:  FlutterFlowTheme.of(context).secondaryBackground,
+      backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
       appBar: AppBar(
         backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
         automaticallyImplyLeading: false,
@@ -77,7 +73,7 @@ class _AuthLoginWidgetState extends State<AuthLoginWidget> {
             size: 30,
           ),
           onPressed: () async {
-            context.pop();
+            Navigator.of(context).pop();
           },
         ),
         elevation: 0,
@@ -94,55 +90,33 @@ class _AuthLoginWidgetState extends State<AuthLoginWidget> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding:
-                            const EdgeInsetsDirectional.fromSTEB(12, 32, 0, 8),
+                        padding: const EdgeInsetsDirectional.fromSTEB(12, 32, 0, 8),
                         child: Text(
                           'Get to my account',
-                          style: FlutterFlowTheme.of(context)
-                              .displayMedium
-                              .override(
-                                font: GoogleFonts.interTight(
-                                  fontWeight: FlutterFlowTheme.of(context)
-                                      .displayMedium
-                                      .fontWeight,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .displayMedium
-                                      .fontStyle,
-                                ),
-                                letterSpacing: 0.0,
-                              ),
+                          style: FlutterFlowTheme.of(context).displayMedium.copyWith(
+                            letterSpacing: 0.0,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                       Padding(
-                        padding:
-                            const EdgeInsetsDirectional.fromSTEB(12, 0, 12, 12),
+                        padding: const EdgeInsetsDirectional.fromSTEB(12, 0, 12, 12),
                         child: Text(
                           'Access your wonderful things by logging in below.',
-                          style: FlutterFlowTheme.of(context)
-                              .labelLarge
-                              .override(
-                                font: GoogleFonts.inter(
-                                  fontWeight: FlutterFlowTheme.of(context)
-                                      .labelLarge
-                                      .fontWeight,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .labelLarge
-                                      .fontStyle,
-                                ),
-                                letterSpacing: 0.0,
-                              ),
+                          style: FlutterFlowTheme.of(context).labelLarge.copyWith(
+                            letterSpacing: 0.0,
+                          ),
                         ),
                       ),
                       // Email Field
                       Padding(
-                        padding: const EdgeInsetsDirectional.fromSTEB(
-                            16, 12, 16, 0),
+                        padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 0),
                         child: TextFormField(
                           controller: _model.emailAddressTextController,
                           focusNode: _model.emailAddressFocusNode,
                           autofocus: false,
                           obscureText: false,
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'Email Address',
                           ),
                           cursorColor: FlutterFlowTheme.of(context).primary,
@@ -151,8 +125,7 @@ class _AuthLoginWidgetState extends State<AuthLoginWidget> {
                       ),
                       // Password Field
                       Padding(
-                        padding: const EdgeInsetsDirectional.fromSTEB(
-                            16, 12, 16, 0),
+                        padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 0),
                         child: TextFormField(
                           controller: _model.passwordTextController,
                           focusNode: _model.passwordFocusNode,
@@ -161,8 +134,7 @@ class _AuthLoginWidgetState extends State<AuthLoginWidget> {
                             labelText: 'Password',
                             suffixIcon: InkWell(
                               onTap: () => safeSetState(() =>
-                                  _model.passwordVisibility =
-                                      !_model.passwordVisibility),
+                                  _model.passwordVisibility = !_model.passwordVisibility),
                               focusNode: FocusNode(skipTraversal: true),
                               child: Icon(
                                 _model.passwordVisibility
@@ -174,68 +146,27 @@ class _AuthLoginWidgetState extends State<AuthLoginWidget> {
                             ),
                           ),
                           cursorColor: FlutterFlowTheme.of(context).primary,
-                          validator:
-                              _model.passwordTextControllerValidator,
-                          inputFormatters: [
-                            if (!isAndroid && !isiOS)
-                              TextInputFormatter.withFunction(
-                                  (oldValue, newValue) {
-                                return TextEditingValue(
-                                  selection: newValue.selection,
-                                  text: newValue.text.toCapitalization(
-                                      TextCapitalization.none),
-                                );
-                              }),
-                          ],
+                          validator: _model.passwordTextControllerValidator,
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsetsDirectional.fromSTEB(
-                            16, 12, 16, 0),
+                        padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 0),
                         child: FFButtonWidget(
                           onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const HomePageWidget()),
-                            );
+                            GoRouter.of(context).push('/home');
                           },
                           text: 'Login',
                           options: FFButtonOptions(
                             width: double.infinity,
-                            height: 60,
-                            color: FlutterFlowTheme.of(context).primaryText,
-                            textStyle: FlutterFlowTheme.of(context)
-                                .titleMedium
-                                .copyWith(
-                                  color: FlutterFlowTheme.of(context)
-                                      .secondaryBackground,
-                                ),
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsetsDirectional.fromSTEB(
-                            16, 12, 16, 0),
-                        child: FFButtonWidget(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const AuthForgotPasswordWidget()),
-                            );
-                          },
-                          text: 'Forgot Password',
-                          options: FFButtonOptions(
-                            width: double.infinity,
-                            height: 60,
-                            color: FlutterFlowTheme.of(context).primaryText,
-                            textStyle: FlutterFlowTheme.of(context)
-                                .titleMedium
-                                .copyWith(
-                                  color: FlutterFlowTheme.of(context)
-                                      .secondaryBackground,
-                                ),
-                            borderRadius: BorderRadius.circular(50),
+                            height: 50.0,
+                            padding: const EdgeInsets.all(0),
+                            color: FlutterFlowTheme.of(context).primary,
+                            textStyle: FlutterFlowTheme.of(context).titleSmall.copyWith(
+                              color: Colors.white,
+                              letterSpacing: 0.0,
+                            ),
+                            elevation: 2.0,
+                            borderRadius: BorderRadius.circular(12.0),
                           ),
                         ),
                       ),
