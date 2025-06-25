@@ -1,9 +1,11 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '/flutter_flow/flutter_flow_theme.dart';
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
+class HomePageWidget extends StatefulWidget {
+  const HomePageWidget({Key? key}) : super(key: key);
 
   @override
   State<HomePageWidget> createState() => _HomePageWidgetState();
@@ -11,14 +13,16 @@
 
 class _HomePageWidgetState extends State<HomePageWidget> {
   Map<String, dynamic>? _vehicleInfo;
+  final PageController _pageController = PageController(viewportFraction: 0.8);
+
+  // Quick Code Check state
+  final TextEditingController _dtcController = TextEditingController();
+  Map<String, String>? _dtcResult;
+  String? _dtcError;
+  bool _dtcLoading = false;
 
   void _navigateToAddCar() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AddVehicleWidget(),
-      ),
-    );
+    final result = await GoRouter.of(context).push('/add-vehicle');
     if (result != null && result is Map<String, dynamic>) {
       setState(() {
         _vehicleInfo = result;
@@ -26,144 +30,243 @@ class _HomePageWidgetState extends State<HomePageWidget> {
     }
   }
 
+  Future<void> _lookupDtcCode() async {
+    final code = _dtcController.text.trim().toUpperCase();
+    if (code.isEmpty) return;
+    setState(() {
+      _dtcLoading = true;
+      _dtcResult = null;
+      _dtcError = null;
+    });
+    try {
+      final response = await http.get(Uri.parse('http://localhost:8080/api/scanner/dtc/lookup?code=$code'));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          _dtcResult = {
+            'code': data['code'] ?? code,
+            'description': data['description'] ?? 'No description found.'
+          };
+          _dtcError = null;
+        });
+      } else {
+        setState(() {
+          _dtcResult = null;
+          _dtcError = 'Code not found.';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _dtcResult = null;
+        _dtcError = 'Error: $e';
+      });
+    } finally {
+      setState(() {
+        _dtcLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-=======
-import 'package:flutter/material.dart';
-import '../../../flutter_flow/flutter_flow_theme.dart';
-
-class HomePageWidget extends StatelessWidget {
-  const HomePageWidget({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
->>>>>>> f478dc7 (Update all files to ensure clean structure)
+    final width = MediaQuery.of(context).size.width;
     return Scaffold(
+      backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
       appBar: AppBar(
-        title: Text('Home'),
+        backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+        elevation: 0,
+        title: const Text('Home', style: TextStyle(fontWeight: FontWeight.bold)),
+        centerTitle: true,
       ),
-=======
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Top full-width card
-            Card(
-              elevation: 3,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Welcome Back!', style: FlutterFlowTheme.of(context).titleLarge),
-                    const SizedBox(height: 8),
-                    Text('Ready for your next scan or chat?', style: FlutterFlowTheme.of(context).bodyMedium),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            // Responsive carousel in the middle
-            SizedBox(
-              height: 150,
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return ListView(
-                    scrollDirection: Axis.horizontal,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Welcome Card
+              Card(
+                color: FlutterFlowTheme.of(context).secondaryBackground,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _QuickActionCard(
-                        icon: Icons.flash_on,
-                        color: Colors.orange,
-                        title: 'Quick Scan',
-                        subtitle: 'Start a new vehicle scan',
-                        onTap: () {},
-                      ),
-                      SizedBox(width: 16),
-                      _QuickActionCard(
-                        icon: Icons.chat_bubble_outline,
-                        color: Colors.blue,
-                        title: 'AI Chat',
-                        subtitle: 'Ask the AI assistant',
-                        onTap: () {
-                          context.go('/chat-ai');
-                        },
-                      ),
-                      SizedBox(width: 16),
-                      _QuickActionCard(
-                        icon: Icons.add_card,
-                        color: Colors.green,
-                        title: 'Add Car',
-                        subtitle: 'Add a new vehicle',
-                        onTap: _navigateToAddCar,
-                      ),
+                      Text('Welcome Back!', style: FlutterFlowTheme.of(context).titleLarge),
+                      const SizedBox(height: 8),
+                      Text('Ready for your next scan or chat?', style: FlutterFlowTheme.of(context).bodyMedium),
                     ],
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 24),
-            // Quick Code Check card
-            _QuickCodeCheckCard(),
-            const SizedBox(height: 24),
-            // Vehicle card at the bottom
-            Expanded(
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: Card(
-                  elevation: 3,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  child: Container(
-                    width: width > 500 ? 500 : double.infinity,
-                    padding: const EdgeInsets.all(24),
-                    child: _vehicleInfo == null
-                        ? Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('My Vehicle', style: FlutterFlowTheme.of(context).titleMedium),
-                              const SizedBox(height: 8),
-                              Text('No vehicle added yet. Tap "Add Car" to get started.', style: FlutterFlowTheme.of(context).bodySmall),
-                            ],
-                          )
-                        : Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('My Vehicle', style: FlutterFlowTheme.of(context).titleMedium),
-                              const SizedBox(height: 8),
-                              _formField('Make', _vehicleInfo!['make']),
-                              _formField('Model', _vehicleInfo!['model']),
-                              _formField('Year', _vehicleInfo!['year']),
-                              _formField('Trim', _vehicleInfo!['trim']),
-                              _formField('VIN', _vehicleInfo!['vin']),
-                            ],
-                          ),
                   ),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 24),
+              // Carousel
+              SizedBox(
+                height: 160,
+                child: PageView(
+                  controller: _pageController,
+                  children: [
+                    _QuickActionCard(
+                      icon: Icons.flash_on,
+                      color: Colors.orange,
+                      title: 'Quick Scan',
+                      subtitle: 'Start a new vehicle scan',
+                      onTap: () {},
+                    ),
+                    _QuickActionCard(
+                      icon: Icons.chat_bubble_outline,
+                      color: Colors.blue,
+                      title: 'AI Chat',
+                      subtitle: 'Ask the AI assistant',
+                      onTap: () {
+                        GoRouter.of(context).push('/chat');
+                      },
+                    ),
+                    _QuickActionCard(
+                      icon: Icons.add_card,
+                      color: Colors.green,
+                      title: 'Add Car',
+                      subtitle: 'Add a new vehicle',
+                      onTap: _navigateToAddCar,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Quick Code Check
+              Card(
+                color: FlutterFlowTheme.of(context).secondaryBackground,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Quick Code Check', style: FlutterFlowTheme.of(context).titleMedium),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _dtcController,
+                        textCapitalization: TextCapitalization.characters,
+                        decoration: InputDecoration(
+                          hintText: 'Enter DTC Code',
+                          border: const OutlineInputBorder(),
+                        ),
+                        onSubmitted: (_) => _lookupDtcCode(),
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _dtcLoading ? null : _lookupDtcCode,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: FlutterFlowTheme.of(context).primary,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: _dtcLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                )
+                              : const Text('Check Code'),
+                        ),
+                      ),
+                      if (_dtcResult != null)
+                        Card(
+                          color: FlutterFlowTheme.of(context).primaryBackground,
+                          margin: const EdgeInsets.only(top: 16),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Code: ${_dtcResult!['code']}', style: FlutterFlowTheme.of(context).titleSmall),
+                                const SizedBox(height: 8),
+                                Text('Description: ${_dtcResult!['description']}', style: FlutterFlowTheme.of(context).bodyMedium),
+                              ],
+                            ),
+                          ),
+                        ),
+                      if (_dtcError != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: Text(_dtcError!, style: TextStyle(color: Colors.red)),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              // My Vehicle Card
+              Card(
+                color: FlutterFlowTheme.of(context).secondaryBackground,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: _vehicleInfo == null
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('My Vehicle', style: FlutterFlowTheme.of(context).titleMedium),
+                            const SizedBox(height: 8),
+                            Text('No vehicle added yet. Tap "Add Car" to get started.', style: FlutterFlowTheme.of(context).bodySmall),
+                          ],
+                        )
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Center(
+                              child: Icon(
+                                Icons.directions_car,
+                                size: 48,
+                                color: FlutterFlowTheme.of(context).primary,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text('My Vehicle', style: FlutterFlowTheme.of(context).titleMedium),
+                            const SizedBox(height: 8),
+                            _vehicleField('Make', _vehicleInfo!['make']),
+                            _vehicleField('Model', _vehicleInfo!['model']),
+                            _vehicleField('Year', _vehicleInfo!['year']),
+                            _vehicleField('VIN', _vehicleInfo!['vin']),
+                          ],
+                        ),
+                ),
+              ),
+            ],
+          ),
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+        selectedItemColor: FlutterFlowTheme.of(context).primary,
+        unselectedItemColor: FlutterFlowTheme.of(context).secondaryText,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.analytics), label: 'Diagnostics'),
+        ],
+        currentIndex: 0,
+        onTap: (index) {},
       ),
     );
   }
 
-  Widget _formField(String label, dynamic value) {
-    if (value == null || value.toString().isEmpty) return SizedBox.shrink();
+  Widget _vehicleField(String label, String? value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: TextFormField(
-        initialValue: value.toString(),
+        initialValue: value ?? '',
         readOnly: true,
         decoration: InputDecoration(
           labelText: label,
-          border: OutlineInputBorder(),
+          border: const OutlineInputBorder(),
           isDense: true,
         ),
-        style: const TextStyle(color: Colors.black87),
+        style: FlutterFlowTheme.of(context).bodyMedium,
       ),
     );
   }
@@ -186,131 +289,30 @@ class _QuickActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 220,
-      child: Card(
-        elevation: 3,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: onTap,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Card(
+          color: FlutterFlowTheme.of(context).secondaryBackground,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          elevation: 4,
           child: Container(
+            width: 220,
             padding: const EdgeInsets.all(20),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  backgroundColor: color.withOpacity(0.15),
-                  child: Icon(icon, color: color, size: 28),
-                  radius: 24,
-                ),
-                const SizedBox(height: 16),
-                Text(title, style: FlutterFlowTheme.of(context).titleMedium),
+                Icon(icon, color: color, size: 32),
+                const SizedBox(height: 12),
+                Text(title, style: FlutterFlowTheme.of(context).titleSmall),
                 const SizedBox(height: 4),
                 Text(subtitle, style: FlutterFlowTheme.of(context).bodySmall),
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _QuickCodeCheckCard extends StatefulWidget {
-  @override
-  State<_QuickCodeCheckCard> createState() => _QuickCodeCheckCardState();
-}
-
-class _QuickCodeCheckCardState extends State<_QuickCodeCheckCard> {
-  final TextEditingController _codeController = TextEditingController();
-  bool _loading = false;
-  String? _error;
-  Map<String, dynamic>? _result;
-
-  Future<void> _checkCode() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-      _result = null;
-    });
-    final code = _codeController.text.trim();
-    if (code.isEmpty) {
-      setState(() {
-        _loading = false;
-        _error = 'Please enter a code.';
-      });
-      return;
-    }
-    try {
-      // TODO: Replace with your backend URL
-      final url = Uri.parse('http://${Config.baseUrl}/api/scanner/dtc/lookup?code=$code');
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        setState(() {
-          _result = json.decode(response.body);
-        });
-      } else {
-        setState(() {
-          _error = 'Code not found or backend error.';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _error = 'Error: $e';
-      });
-    } finally {
-      setState(() {
-        _loading = false;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Quick Code Check', style: FlutterFlowTheme.of(context).titleMedium),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _codeController,
-              decoration: InputDecoration(
-                labelText: 'Enter DTC Code',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: _loading ? null : _checkCode,
-              child: _loading ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : Text('Check Code'),
-            ),
-            if (_error != null) ...[
-              const SizedBox(height: 12),
-              Text(_error!, style: TextStyle(color: Colors.red)),
-            ],
-            if (_result != null) ...[
-              const SizedBox(height: 16),
-              Text('Result:', style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 6),
-              if (_result!['description'] != null)
-                Text('Description: ${_result!['description']}'),
-              if (_result!['suggestions'] != null)
-                Text('Suggestions: ${_result!['suggestions']}'),
-            ],
-          ],
-        ),
->>>>>>> 8a14f7e (Added UI chat and connection to backend service)
-=======
-      body: Center(
-        child: Text('Home Page (UI template)'),
->>>>>>> f478dc7 (Update all files to ensure clean structure)
       ),
     );
   }

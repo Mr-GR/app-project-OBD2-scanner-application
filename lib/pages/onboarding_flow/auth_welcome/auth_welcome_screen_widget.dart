@@ -1,268 +1,136 @@
-import 'package:o_b_d2_scanner_frontend/index.dart';
-import 'package:o_b_d2_scanner_frontend/pages/onboarding_flow/auth_create/auth_create_model.dart';
-import 'package:o_b_d2_scanner_frontend/pages/onboarding_flow/auth_create/auth_create_widget.dart';
-import 'package:o_b_d2_scanner_frontend/pages/onboarding_flow/auth_login/auth_login_widget.dart';
-
-import '/flutter_flow/flutter_flow_animations.dart';
-import '/flutter_flow/flutter_flow_theme.dart';
-import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
-import 'package:smooth_page_indicator/smooth_page_indicator.dart'
-    as smooth_page_indicator;
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '/flutter_flow/flutter_flow_theme.dart';
+import 'package:go_router/go_router.dart';
 
 class AuthWelcomeScreenWidget extends StatefulWidget {
   const AuthWelcomeScreenWidget({super.key});
 
-  static String routeName = 'auth_WelcomeScreen';
-  static String routePath = '/authWelcomeScreen';
-
   @override
-  State<AuthWelcomeScreenWidget> createState() =>
-      _AuthWelcomeScreenWidgetState();
+  State<AuthWelcomeScreenWidget> createState() => _AuthWelcomeScreenWidgetState();
 }
 
-class _AuthWelcomeScreenWidgetState extends State<AuthWelcomeScreenWidget>
-    with TickerProviderStateMixin {
-  final scaffoldKey = GlobalKey<ScaffoldState>();
-  final animationsMap = <String, AnimationInfo>{};
-  late PageController pageViewController;
+class _AuthWelcomeScreenWidgetState extends State<AuthWelcomeScreenWidget> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
 
-  final List<Map<String, String>> welcomePages = [
-    {
-      'title': 'Welcome to Auto Fix',
-      'body': 'Use Auto Fix to identify your vehicle erros and resolve them with AI guidance.',
-    },
-    {
-      'title': 'Scan with your OBD2',
-      'body': 'Connect your OBD2 for quicker insights.',
-    },
-    {
-      'title': 'Enter your Information',
-      'body': 'If you do not have an OBD2 scanner you can still ask AI.',
-    },
+  final List<_OnboardingStep> _steps = [
+    _OnboardingStep(
+      icon: Icons.directions_car,
+      title: 'Welcome to Auto Fix',
+      subtitle: 'Your intelligent OBD2 diagnostic companion',
+      description: 'Get real-time insights into your vehicle\'s health with advanced diagnostics and AI-powered analysis.',
+    ),
+    _OnboardingStep(
+      icon: Icons.bluetooth,
+      title: 'Connect Your OBD2',
+      subtitle: 'Easy Bluetooth pairing',
+      description: 'Pair your OBD2 device for seamless and fast vehicle scans.',
+    ),
+    _OnboardingStep(
+      icon: Icons.analytics,
+      title: 'Advanced Diagnostics',
+      subtitle: 'Understand your car',
+      description: 'Get detailed reports and explanations for trouble codes and vehicle health.',
+    ),
+    _OnboardingStep(
+      icon: Icons.chat_bubble_outline,
+      title: 'AI Chat Assistant',
+      subtitle: 'Ask anything automotive',
+      description: 'Let our AI help you with car questions, maintenance, and troubleshooting.',
+    ),
   ];
 
-
-  final List<String> carImages = [
-    'https://cdn.pixabay.com/photo/2017/03/27/14/56/car-2179220_960_720.jpg',
-    'https://cdn.pixabay.com/photo/2015/01/19/13/51/car-604019_960_720.jpg',
-    'https://images.unsplash.com/photo-1503736334956-4c8f8e92946d',
-    'https://cdn.pixabay.com/photo/2015/01/19/13/51/car-604019_960_720.jpg',
-    'https://images.unsplash.com/photo-1503736334956-4c8f8e92946d',
-    'https://cdn.pixabay.com/photo/2015/01/19/13/51/car-604019_960_720.jpg',
-    'https://images.unsplash.com/photo-1503736334956-4c8f8e92946d',
-    'https://cdn.pixabay.com/photo/2015/01/19/13/51/car-604019_960_720.jpg',
-    'https://cdn.pixabay.com/photo/2017/03/27/14/56/car-2179220_960_720.jpg',
-    'https://cdn.pixabay.com/photo/2017/03/27/14/56/car-2179220_960_720.jpg',
-    'https://cdn.pixabay.com/photo/2015/01/19/13/51/car-604019_960_720.jpg',
-    'https://images.unsplash.com/photo-1503736334956-4c8f8e92946d',
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    pageViewController = PageController(initialPage: 0);
-
-    animationsMap.addAll({
-      'containerOnPageLoadAnimation': AnimationInfo(
-        loop: true,
-        reverse: true,
-        trigger: AnimationTrigger.onPageLoad,
-        effectsBuilder: () => [
-          MoveEffect(
-            curve: Curves.easeOut,
-            delay: 0.0.ms,
-            duration: 3200.0.ms,
-            begin: Offset(0.0, -80.0),
-            end: Offset(0.0, 0.0),
-          ),
-          MoveEffect(
-            curve: Curves.easeInOut,
-            delay: 3200.0.ms,
-            duration: 3200.0.ms,
-            begin: Offset(0.0, 0.0),
-            end: Offset(0.0, -80.0),
-          ),
-        ],
-      ),
-    });
-  }
-
-  @override
-  void dispose() {
-    pageViewController.dispose();
-    super.dispose();
+  void _nextPage() {
+    if (_currentPage < _steps.length - 1) {
+      _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.ease);
+    } else {
+      GoRouter.of(context).go('/home');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    print('AuthWelcomeScreenWidget build called');
-    return GestureDetector(
-      onTap: () {
-        FocusScope.of(context).unfocus();
-      },
-      child: Scaffold(
-        key: scaffoldKey,
-        backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
-        body: Stack(
+    return Scaffold(
+      backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+      body: SafeArea(
+        child: Column(
           children: [
-            Column(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Expanded(
-                  child: Container(
-                    width: double.infinity,
-                    height: 600,
-                    decoration: BoxDecoration(
-                      color: FlutterFlowTheme.of(context).secondaryBackground,
-                    ),
-                    child: MasonryGridView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          SliverSimpleGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
+            Expanded(
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: _steps.length,
+                onPageChanged: (index) {
+                  setState(() => _currentPage = index);
+                },
+                itemBuilder: (context, index) {
+                  final step = _steps[index];
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Spacer(flex: 2),
+                      CircleAvatar(
+                        radius: 56,
+                        backgroundColor: FlutterFlowTheme.of(context).secondary,
+                        child: Icon(step.icon, size: 56, color: FlutterFlowTheme.of(context).primary),
                       ),
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
-                      itemCount: carImages.length,
-                      itemBuilder: (context, index) {
-                        return ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: Image.network(
-                            carImages[index],
-                            width: 120,
-                            height: 160,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => Container(
-                              color: Colors.grey[200],
-                              child: Icon(
-                                Icons.directions_car,
-                                size: 40,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ).animateOnPageLoad(
-                      animationsMap['containerOnPageLoadAnimation']!),
-                ),
-              ],
-            ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                constraints: const BoxConstraints(maxWidth: 670),
-                decoration: BoxDecoration(
-                  color: FlutterFlowTheme.of(context).secondaryBackground,
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      height: 230,
-                      child: PageView(
-                        controller: pageViewController,
-                        children: List.generate(welcomePages.length, (index) {
-                          final page = welcomePages[index];
-                          return Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                page['title']!,
-                                textAlign: TextAlign.center,
-                                style: FlutterFlowTheme.of(context)
-                                    .displaySmall
-                                    .copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                page['body']!,
-                                textAlign: TextAlign.center,
-                                style:
-                                    FlutterFlowTheme.of(context).labelLarge,
-                              ),
-                            ],
-                          );
-                        }),
+                      const SizedBox(height: 32),
+                      Text(
+                        step.title,
+                        style: FlutterFlowTheme.of(context).headlineMedium.copyWith(fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 10),
-                      child: smooth_page_indicator.SmoothPageIndicator(
-                        controller: pageViewController,
-                        count: welcomePages.length,
-                        effect: smooth_page_indicator.ExpandingDotsEffect(
-                          dotColor: Colors.grey,
-                          activeDotColor: Colors.black,
-                          expansionFactor: 3,
-                          spacing: 8.0,
-                          dotHeight: 8.0,
-                          dotWidth: 8.0,
+                      const SizedBox(height: 12),
+                      Text(
+                        step.subtitle,
+                        style: FlutterFlowTheme.of(context).bodyMedium.copyWith(color: FlutterFlowTheme.of(context).primary),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 20),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Text(
+                          step.description,
+                          style: FlutterFlowTheme.of(context).bodyMedium,
+                          textAlign: TextAlign.center,
                         ),
-                        onDotClicked: (index) {
-                          pageViewController.animateToPage(
-                            index,
-                            duration: const Duration(milliseconds: 500),
-                            curve: Curves.ease,
-                          );
-                        },
                       ),
-                    ),
-                    const SizedBox(height: 20),
-                    FFButtonWidget(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const AuthLoginWidget()),
-                        );
-                      },
-                      text: 'Login',
-                      options: FFButtonOptions(
-                        width: double.infinity,
-                        height: 60,
-                        color: FlutterFlowTheme.of(context).primaryText,
-                        textStyle: FlutterFlowTheme.of(context)
-                            .titleMedium
-                            .copyWith(
-                              color: FlutterFlowTheme.of(context)
-                                  .secondaryBackground,
-                            ),
-                        borderRadius: BorderRadius.circular(50),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    FFButtonWidget(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const AuthCreateWidget()),
-                        );
-                      },
-                      text: 'Create an Account',
-                      options: FFButtonOptions(
-                        width: double.infinity,
-                        height: 60,
-                        color: FlutterFlowTheme.of(context).primaryText,
-                        textStyle: FlutterFlowTheme.of(context)
-                            .titleMedium
-                            .copyWith(
-                              color: FlutterFlowTheme.of(context)
-                                  .secondaryBackground,
-                            ),
-                        borderRadius: BorderRadius.circular(50),
-                      ),
-                    ),
-                  ],
+                      const Spacer(flex: 3),
+                    ],
+                  );
+                },
+              ),
+            ),
+            // Progress dots
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(_steps.length, (index) {
+                final isActive = index == _currentPage;
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 16),
+                  width: isActive ? 16 : 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: isActive ? FlutterFlowTheme.of(context).primary : Colors.white24,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                );
+              }),
+            ),
+            // Next button
+            Padding(
+              padding: const EdgeInsets.only(bottom: 32, right: 24, left: 24),
+              child: SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: _nextPage,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: FlutterFlowTheme.of(context).primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+                  ),
+                  child: Text(_currentPage == _steps.length - 1 ? 'Get Started' : 'Next'),
                 ),
               ),
             ),
@@ -271,4 +139,17 @@ class _AuthWelcomeScreenWidgetState extends State<AuthWelcomeScreenWidget>
       ),
     );
   }
+}
+
+class _OnboardingStep {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final String description;
+  const _OnboardingStep({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.description,
+  });
 }

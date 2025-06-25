@@ -4,7 +4,6 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'chat_ai_screen_model.dart';
 export 'chat_ai_screen_model.dart';
 
@@ -61,9 +60,11 @@ class _ChatAiScreenWidgetState extends State<ChatAiScreenWidget> {
               Icons.arrow_back,
               color: FlutterFlowTheme.of(context).primaryText,
             ),
-            onPressed: () => context.pop(),
+            onPressed: () => Navigator.of(context).pop(),
           ),
           title: Text(
+            'AI Mechanic Assistant',
+            style: FlutterFlowTheme.of(context).headlineMedium,
           ),
           actions: [
             Padding(

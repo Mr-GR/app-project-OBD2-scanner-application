@@ -1,14 +1,4 @@
 import 'dart:convert';
-import 'dart:math' as math;
-
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
-// import 'package:timeago/timeago.dart' as timeago; // Removed for UI-only template
-import 'lat_lng.dart';
-import 'place.dart';
-import 'uploaded_file.dart';
-// Backend and auth imports removed for UI-only template.
 
 dynamic saveChatHistory(
   dynamic chatHistory,

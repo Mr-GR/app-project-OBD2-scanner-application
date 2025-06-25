@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '/flutter_flow/flutter_flow_theme.dart';
 
 class DiagnosticsTabWidget extends StatefulWidget {
   const DiagnosticsTabWidget({super.key});
@@ -59,23 +60,23 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
           children: [
             Column(
               children: [
-                Icon(Icons.directions_car, size: 32),
-                SizedBox(height: 8),
-                Text('Scan'),
+                const Icon(Icons.directions_car, size: 32),
+                const SizedBox(height: 8),
+                const Text('Scan'),
               ],
             ),
             Column(
               children: [
-                Icon(Icons.history, size: 32),
-                SizedBox(height: 8),
-                Text('History'),
+                const Icon(Icons.history, size: 32),
+                const SizedBox(height: 8),
+                const Text('History'),
               ],
             ),
             Column(
               children: [
-                Icon(Icons.settings, size: 32),
-                SizedBox(height: 8),
-                Text('Settings'),
+                const Icon(Icons.settings, size: 32),
+                const SizedBox(height: 8),
+                const Text('Settings'),
               ],
             ),
           ],
@@ -95,7 +96,7 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
             const SizedBox(height: 12),
             TextField(
               controller: _aiQuestionController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: 'Ask the AI about your car...',
                 border: OutlineInputBorder(),
               ),
@@ -103,7 +104,7 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
             const SizedBox(height: 12),
             ElevatedButton(
               onPressed: () {},
-              child: Text('Send'),
+              child: const Text('Send'),
             ),
           ],
         ),
@@ -120,7 +121,7 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
           children: [
             Text('My Car', style: FlutterFlowTheme.of(context).titleMedium),
             const SizedBox(height: 12),
-            Text('No vehicle selected. (UI template)'),
+            const Text('No vehicle selected. (UI template)'),
           ],
         ),
       ),
@@ -136,7 +137,7 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
           children: [
             Text('Recent Scans', style: FlutterFlowTheme.of(context).titleMedium),
             const SizedBox(height: 12),
-            Text('No scans yet. (UI template)'),
+            const Text('No scans yet. (UI template)'),
           ],
         ),
       ),
