@@ -1,53 +1,3 @@
-<<<<<<< HEAD
-import 'package:o_b_d2_scanner_frontend/flutter_flow/flutter_flow_icon_button.dart';
-import 'package:o_b_d2_scanner_frontend/pages/chat/ai_chat_widget.dart';
-import 'package:o_b_d2_scanner_frontend/pages/manual_configuration/manual_configuration_widget.dart';
-import 'package:o_b_d2_scanner_frontend/pages/obd2_bluetooth_configuration/obd2_bluetooth_configuration_widget.dart';
-import 'package:o_b_d2_scanner_frontend/pages/settings/settings/settings_widget.dart';
-
-import '/flutter_flow/flutter_flow_theme.dart';
-import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
-import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'home_page_model.dart';
-export 'home_page_model.dart';
-
-class HomePageWidget extends StatefulWidget {
-  const HomePageWidget({super.key});
-
-  static String routeName = 'HomePage';
-  static String routePath = '/homePage';
-
-  @override
-  State<HomePageWidget> createState() => _HomePageWidgetState();
-}
-
-class _HomePageWidgetState extends State<HomePageWidget> {
-  late HomePageModel _model;
-
-  final scaffoldKey = GlobalKey<ScaffoldState>();
-  int _selectedIndex = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _model = createModel(context, () => HomePageModel());
-  }
-
-  @override
-  void dispose() {
-    _model.dispose();
-    super.dispose();
-  }
-=======
-import 'package:flutter/material.dart';
-import '../../../flutter_flow/flutter_flow_theme.dart';
-
-class HomePageWidget extends StatelessWidget {
-  const HomePageWidget({Key? key}) : super(key: key);
->>>>>>> f478dc7 (Update all files to ensure clean structure)
 
   void _onItemTapped(int index) {
     setState(() {
@@ -56,261 +6,308 @@ class HomePageWidget extends StatelessWidget {
   }
 
   @override
+  State<HomePageWidget> createState() => _HomePageWidgetState();
+}
+
+class _HomePageWidgetState extends State<HomePageWidget> {
+  Map<String, dynamic>? _vehicleInfo;
+
+  void _navigateToAddCar() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddVehicleWidget(),
+      ),
+    );
+    if (result != null && result is Map<String, dynamic>) {
+      setState(() {
+        _vehicleInfo = result;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-    return GestureDetector(
-      onTap: () {
-        FocusScope.of(context).unfocus();
-        FocusManager.instance.primaryFocus?.unfocus();
-      },
-      child: Scaffold(
-        key: scaffoldKey,
-        backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
-        appBar: AppBar(
-          backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
-          automaticallyImplyLeading: false,
-          leading: _selectedIndex != 0
-              ? FlutterFlowIconButton(
-                  borderColor: Colors.transparent,
-                  borderRadius: 30,
-                  borderWidth: 1,
-                  buttonSize: 60,
-                  icon: Icon(
-                    Icons.arrow_back_rounded,
-                    color: FlutterFlowTheme.of(context).primaryText,
-                    size: 30,
-                  ),
-                  onPressed: () async {
-                    setState(() {
-                      _selectedIndex = 0;
-                    });
-                  },
-                )
-              : null,
-          elevation: 0,
-        ),
-        body: SafeArea(
-          top: true,
-          child: _selectedIndex == 0
-              ? _buildHomeContent(context)
-              : _selectedIndex == 1
-                  ? const SettingsWidget()
-                  : Center(
-                      child: Text(
-                        'Profile Page Coming Soon...',
-                        style: FlutterFlowTheme.of(context).bodyLarge,
-                      ),
-                    ),
-        ),
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: _onItemTapped,
-          selectedItemColor: Colors.black,
-          unselectedItemColor: Colors.grey,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.settings),
-              label: 'Settings',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: 'Profile',
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHomeContent(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(16.0, 16.0, 16.0, 16.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          Padding(
-            padding: const EdgeInsetsDirectional.only(bottom: 24.0),
-            child: Row(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Welcome to Auto Fix',
-                  textAlign: TextAlign.center,
-                  style: FlutterFlowTheme.of(context)
-                      .headlineMedium
-                      .override(
-                        font: GoogleFonts.interTight(
-                          fontWeight: FlutterFlowTheme.of(context)
-                              .headlineMedium
-                              .fontWeight,
-                          fontStyle: FlutterFlowTheme.of(context)
-                              .headlineMedium
-                              .fontStyle,
-                        ),
-                        letterSpacing: 0.0,
-                      ),
-                ),
-              ],
-            ),
-          ),
-          const Spacer(),
-          SizedBox(
-            height: 200,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: [
-                _buildFeatureCard(
-                  icon: FontAwesomeIcons.bars,
-                  label: 'Manual Setup',
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const ManualConfigurationWidget()),
-                  ),
-                ),
-                _buildFeatureCard(
-                  icon: FontAwesomeIcons.screwdriver,
-                  label: 'OBD2 Scanner',
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const Obd2BluetoothConfigurationWidget()),
-                  ),
-                ),
-                _buildFeatureCard(
-                  icon: FontAwesomeIcons.robot,
-                  label: 'AI Chat',
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const AiChatWidget()),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          SizedBox(
-            height: 150,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 16.0),
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(right: 12),
-                    padding: const EdgeInsets.all(20.0),
-                    width: 250,
-                    decoration: BoxDecoration(
-                      color: FlutterFlowTheme.of(context).primaryBackground,
-                      borderRadius: BorderRadius.circular(16.0),
-                      border: Border.all(
-                        color: FlutterFlowTheme.of(context).primaryBackground,
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        'Cars coming soon...',
-                        style: FlutterFlowTheme.of(context).bodyMedium,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const Spacer(),
-          // Padding(
-          //   padding: const EdgeInsets.only(top: 16.0),
-          //   child: FFButtonWidget(
-          //     onPressed: () {
-          //       Navigator.push(
-          //         context,
-          //         MaterialPageRoute(
-          //           builder: (context) => const AiChatWidget(),
-          //         ),
-          //       );
-          //     },
-          //     text: 'Get Started',
-          //     options: FFButtonOptions(
-          //       width: double.infinity,
-          //       height: 50.0,
-          //       padding: const EdgeInsets.all(8.0),
-          //       iconAlignment: IconAlignment.start,
-          //       iconPadding: const EdgeInsetsDirectional.all(0.0),
-          //       color: Colors.black,
-          //       textStyle: FlutterFlowTheme.of(context).titleSmall.override(
-          //             font: GoogleFonts.interTight(
-          //               fontWeight:
-          //                   FlutterFlowTheme.of(context).titleSmall.fontWeight,
-          //               fontStyle:
-          //                   FlutterFlowTheme.of(context).titleSmall.fontStyle,
-          //             ),
-          //             color: FlutterFlowTheme.of(context).secondaryBackground,
-          //             letterSpacing: 0.0,
-          //           ),
-          //       elevation: 2.0,
-          //       borderRadius: BorderRadius.circular(12.0),
-          //     ),
-          //   ),
-          // ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFeatureCard({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(right: 12),
-        padding: const EdgeInsets.all(16.0),
-        width: 180,
-        decoration: BoxDecoration(
-          color: FlutterFlowTheme.of(context).secondaryBackground,
-          borderRadius: BorderRadius.circular(12.0),
-          border: Border.all(
-            color: FlutterFlowTheme.of(context).primaryBackground,
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            FaIcon(
-              icon,
-              color: Colors.black,
-              size: 32.0,
-            ),
-            const SizedBox(height: 8.0),
-            Text(
-              label,
-              style: FlutterFlowTheme.of(context).bodyLarge.override(
-                    font: GoogleFonts.inter(
-                      fontWeight: 
-                          FlutterFlowTheme.of(context).bodyLarge.fontWeight,
-                      fontStyle:
-                          FlutterFlowTheme.of(context).bodyLarge.fontStyle,
-                    ),
-                    letterSpacing: 0.0,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
 =======
+import 'package:flutter/material.dart';
+import '../../../flutter_flow/flutter_flow_theme.dart';
+
+class HomePageWidget extends StatelessWidget {
+  const HomePageWidget({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+>>>>>>> f478dc7 (Update all files to ensure clean structure)
     return Scaffold(
       appBar: AppBar(
         title: Text('Home'),
       ),
+=======
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Top full-width card
+            Card(
+              elevation: 3,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Welcome Back!', style: FlutterFlowTheme.of(context).titleLarge),
+                    const SizedBox(height: 8),
+                    Text('Ready for your next scan or chat?', style: FlutterFlowTheme.of(context).bodyMedium),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Responsive carousel in the middle
+            SizedBox(
+              height: 150,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: [
+                      _QuickActionCard(
+                        icon: Icons.flash_on,
+                        color: Colors.orange,
+                        title: 'Quick Scan',
+                        subtitle: 'Start a new vehicle scan',
+                        onTap: () {},
+                      ),
+                      SizedBox(width: 16),
+                      _QuickActionCard(
+                        icon: Icons.chat_bubble_outline,
+                        color: Colors.blue,
+                        title: 'AI Chat',
+                        subtitle: 'Ask the AI assistant',
+                        onTap: () {
+                          context.go('/chat-ai');
+                        },
+                      ),
+                      SizedBox(width: 16),
+                      _QuickActionCard(
+                        icon: Icons.add_card,
+                        color: Colors.green,
+                        title: 'Add Car',
+                        subtitle: 'Add a new vehicle',
+                        onTap: _navigateToAddCar,
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Quick Code Check card
+            _QuickCodeCheckCard(),
+            const SizedBox(height: 24),
+            // Vehicle card at the bottom
+            Expanded(
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Card(
+                  elevation: 3,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  child: Container(
+                    width: width > 500 ? 500 : double.infinity,
+                    padding: const EdgeInsets.all(24),
+                    child: _vehicleInfo == null
+                        ? Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('My Vehicle', style: FlutterFlowTheme.of(context).titleMedium),
+                              const SizedBox(height: 8),
+                              Text('No vehicle added yet. Tap "Add Car" to get started.', style: FlutterFlowTheme.of(context).bodySmall),
+                            ],
+                          )
+                        : Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('My Vehicle', style: FlutterFlowTheme.of(context).titleMedium),
+                              const SizedBox(height: 8),
+                              _formField('Make', _vehicleInfo!['make']),
+                              _formField('Model', _vehicleInfo!['model']),
+                              _formField('Year', _vehicleInfo!['year']),
+                              _formField('Trim', _vehicleInfo!['trim']),
+                              _formField('VIN', _vehicleInfo!['vin']),
+                            ],
+                          ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _formField(String label, dynamic value) {
+    if (value == null || value.toString().isEmpty) return SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: TextFormField(
+        initialValue: value.toString(),
+        readOnly: true,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(),
+          isDense: true,
+        ),
+        style: const TextStyle(color: Colors.black87),
+      ),
+    );
+  }
+}
+
+class _QuickActionCard extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const _QuickActionCard({
+    required this.icon,
+    required this.color,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 220,
+      child: Card(
+        elevation: 3,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircleAvatar(
+                  backgroundColor: color.withOpacity(0.15),
+                  child: Icon(icon, color: color, size: 28),
+                  radius: 24,
+                ),
+                const SizedBox(height: 16),
+                Text(title, style: FlutterFlowTheme.of(context).titleMedium),
+                const SizedBox(height: 4),
+                Text(subtitle, style: FlutterFlowTheme.of(context).bodySmall),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _QuickCodeCheckCard extends StatefulWidget {
+  @override
+  State<_QuickCodeCheckCard> createState() => _QuickCodeCheckCardState();
+}
+
+class _QuickCodeCheckCardState extends State<_QuickCodeCheckCard> {
+  final TextEditingController _codeController = TextEditingController();
+  bool _loading = false;
+  String? _error;
+  Map<String, dynamic>? _result;
+
+  Future<void> _checkCode() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+      _result = null;
+    });
+    final code = _codeController.text.trim();
+    if (code.isEmpty) {
+      setState(() {
+        _loading = false;
+        _error = 'Please enter a code.';
+      });
+      return;
+    }
+    try {
+      // TODO: Replace with your backend URL
+      final url = Uri.parse('http://${Config.baseUrl}/api/scanner/dtc/lookup?code=$code');
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        setState(() {
+          _result = json.decode(response.body);
+        });
+      } else {
+        setState(() {
+          _error = 'Code not found or backend error.';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error: $e';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Quick Code Check', style: FlutterFlowTheme.of(context).titleMedium),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _codeController,
+              decoration: InputDecoration(
+                labelText: 'Enter DTC Code',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: _loading ? null : _checkCode,
+              child: _loading ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : Text('Check Code'),
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: 12),
+              Text(_error!, style: TextStyle(color: Colors.red)),
+            ],
+            if (_result != null) ...[
+              const SizedBox(height: 16),
+              Text('Result:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 6),
+              if (_result!['description'] != null)
+                Text('Description: ${_result!['description']}'),
+              if (_result!['suggestions'] != null)
+                Text('Suggestions: ${_result!['suggestions']}'),
+            ],
+          ],
+        ),
+>>>>>>> 8a14f7e (Added UI chat and connection to backend service)
+=======
       body: Center(
         child: Text('Home Page (UI template)'),
 >>>>>>> f478dc7 (Update all files to ensure clean structure)

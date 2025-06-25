@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import '../../flutter_flow/flutter_flow_theme.dart';
 
 class ChatScreenWidget extends StatefulWidget {
   final String? vehicleVin;

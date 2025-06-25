@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:go_router/go_router.dart';
-<<<<<<< HEAD
-import 'package:o_b_d2_scanner_frontend/pages/onboarding_flow/auth_forgot_password/auth_forgot_password_widget.dart';
-=======
 import 'package:o_b_d2_scanner_frontend/pages/chat/chat_screen_widget.dart';
 import 'package:o_b_d2_scanner_frontend/pages/chat/chat_test_widget.dart';
 import 'package:o_b_d2_scanner_frontend/pages/home/main_tab_scaffold.dart';
@@ -26,11 +23,25 @@ import 'package:o_b_d2_scanner_frontend/pages/diagnostic/scan_results_screen.dar
 import 'package:o_b_d2_scanner_frontend/widgets/integration_example.dart';
 import 'package:o_b_d2_scanner_frontend/widgets/accessibility_widgets.dart';
 import 'package:o_b_d2_scanner_frontend/widgets/onboarding_tutorial_system.dart';
->>>>>>> f478dc7 (Update all files to ensure clean structure)
 
 import '/flutter_flow/flutter_flow_theme.dart';
-import 'flutter_flow/flutter_flow_util.dart';
 import 'pages/onboarding_flow/auth_welcome/auth_welcome_screen_widget.dart';
+import 'test/test_widget.dart';
+
+// AppStateNotifier for managing app state
+class AppStateNotifier extends ChangeNotifier {
+  static final AppStateNotifier _instance = AppStateNotifier._internal();
+  static AppStateNotifier get instance => _instance;
+  AppStateNotifier._internal();
+
+  bool _showSplashImage = true;
+  bool get showSplashImage => _showSplashImage;
+
+  void stopShowingSplashImage() {
+    _showSplashImage = false;
+    notifyListeners();
+  }
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -67,19 +78,13 @@ class _MyAppState extends State<MyApp> {
         FlutterFlowTheme.saveThemeMode(mode);
       });
 
-  String getRoute([RouteMatch? routeMatch]) {
-    final RouteMatch lastMatch =
-        routeMatch ?? _router.routerDelegate.currentConfiguration.last;
-    final RouteMatchList matchList = lastMatch is ImperativeRouteMatch
-        ? lastMatch.matches
-        : _router.routerDelegate.currentConfiguration;
-    return matchList.uri.toString();
+  String getRoute() {
+    return _router.routerDelegate.currentConfiguration.uri.toString();
   }
 
-  List<String> getRouteStack() =>
-      _router.routerDelegate.currentConfiguration.matches
-          .map((e) => getRoute(e as RouteMatch?))
-          .toList();
+  List<String> getRouteStack() {
+    return [_router.routerDelegate.currentConfiguration.uri.toString()];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -92,18 +97,6 @@ class _MyAppState extends State<MyApp> {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: const [Locale('en', '')],
-<<<<<<< HEAD
-      theme: ThemeData(
-        brightness: Brightness.light,
-        useMaterial3: false,
-      ),
-      darkTheme: ThemeData(
-        brightness: Brightness.dark,
-        useMaterial3: false,
-      ),
-      themeMode: _themeMode,
-      routerConfig: _router,
-=======
       theme: FlutterFlowTheme.of(context).theme,
       darkTheme: FlutterFlowTheme.of(context).darkTheme,
       themeMode: _themeMode,
@@ -116,7 +109,6 @@ class _MyAppState extends State<MyApp> {
           child: child!,
         );
       },
->>>>>>> f478dc7 (Update all files to ensure clean structure)
     );
   }
 }
@@ -128,6 +120,110 @@ GoRouter createRouter() {
       GoRoute(
         path: '/authWelcomeScreen',
         builder: (context, state) => const AuthWelcomeScreenWidget(),
+      ),
+      GoRoute(
+        path: '/test',
+        builder: (context, state) => const TestWidget(),
+      ),
+      GoRoute(
+        path: '/chat',
+        builder: (context, state) => const ChatScreenWidget(),
+      ),
+      GoRoute(
+        path: '/chat-test',
+        builder: (context, state) => const ChatTestWidget(),
+      ),
+      GoRoute(
+        path: '/home',
+        builder: (context, state) => const MainTabScaffold(),
+      ),
+      GoRoute(
+        path: '/connection-settings',
+        builder: (context, state) => const ConnectionSettingsWidget(),
+      ),
+      GoRoute(
+        path: '/profile-settings',
+        builder: (context, state) => const ProfileSettingsScreen(),
+      ),
+      GoRoute(
+        path: '/subscription-details',
+        builder: (context, state) => const SubscriptionDetailsScreen(),
+      ),
+      GoRoute(
+        path: '/payment-methods',
+        builder: (context, state) => const PaymentMethodsScreen(),
+      ),
+      GoRoute(
+        path: '/account-history',
+        builder: (context, state) => const AccountHistoryScreen(),
+      ),
+      GoRoute(
+        path: '/personal-information',
+        builder: (context, state) => const PersonalInformationScreen(),
+      ),
+      GoRoute(
+        path: '/notification-settings',
+        builder: (context, state) => const NotificationSettingsScreen(),
+      ),
+      GoRoute(
+        path: '/obd2-devices',
+        builder: (context, state) => const OBD2DevicesScreen(),
+      ),
+      GoRoute(
+        path: '/appearance-settings',
+        builder: (context, state) => const AppearanceSettingsScreen(),
+      ),
+      GoRoute(
+        path: '/data-storage-settings',
+        builder: (context, state) => const DataStorageSettingsScreen(),
+      ),
+      GoRoute(
+        path: '/security-settings',
+        builder: (context, state) => const SecuritySettingsScreen(),
+      ),
+      GoRoute(
+        path: '/data-management',
+        builder: (context, state) => const DataManagementScreen(),
+      ),
+      GoRoute(
+        path: '/support',
+        builder: (context, state) => const SupportScreen(),
+      ),
+      GoRoute(
+        path: '/upgrade-pro',
+        builder: (context, state) => const UpgradeProScreen(),
+      ),
+      GoRoute(
+        path: '/scan-results',
+        builder: (context, state) {
+          // Extract scan result from state parameters
+          final scanResult = state.extra as ScanResult?;
+          if (scanResult != null) {
+            return ScanResultsScreen(scanResult: scanResult);
+          }
+          // Fallback to a default scan result if none provided
+          return ScanResultsScreen(
+            scanResult: ScanResult(
+              id: 'default',
+              type: 'Default Scan',
+              timestamp: 'Now',
+              vehicleVin: 'default',
+              vehicleName: 'Default Vehicle',
+              results: {'System': 'OK'},
+              overallHealth: '85% Health',
+              issues: [],
+              recommendations: [],
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/onboarding',
+        builder: (context, state) => const OnboardingScreen(),
+      ),
+      GoRoute(
+        path: '/enhanced-features-demo',
+        builder: (context, state) => const IntegrationExample(),
       ),
     ],
   );

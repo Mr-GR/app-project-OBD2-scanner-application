@@ -30,7 +30,7 @@ class _ChatAiScreenWidgetState extends State<ChatAiScreenWidget> {
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
-      // showProgressDots
+      // Initialize chat
       _model.aiResponding = false;
       safeSetState(() {});
     });
@@ -55,46 +55,50 @@ class _ChatAiScreenWidgetState extends State<ChatAiScreenWidget> {
         backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
         appBar: AppBar(
           backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
-          automaticallyImplyLeading: false,
+          automaticallyImplyLeading: true,
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back,
+              color: FlutterFlowTheme.of(context).primaryText,
+            ),
+            onPressed: () => context.pop(),
+          ),
           title: Text(
-            'Ai Chat',
-            style: FlutterFlowTheme.of(context).headlineMedium.override(
-                  font: GoogleFonts.interTight(
-                    fontWeight:
-                        FlutterFlowTheme.of(context).headlineMedium.fontWeight,
-                    fontStyle:
-                        FlutterFlowTheme.of(context).headlineMedium.fontStyle,
-                  ),
-                  letterSpacing: 0.0,
-                  fontWeight:
-                      FlutterFlowTheme.of(context).headlineMedium.fontWeight,
-                  fontStyle:
-                      FlutterFlowTheme.of(context).headlineMedium.fontStyle,
-                ),
           ),
           actions: [
             Padding(
               padding: EdgeInsetsDirectional.fromSTEB(0.0, 8.0, 16.0, 8.0),
               child: FlutterFlowIconButton(
-                borderColor: FlutterFlowTheme.of(context).primary,
+                borderColor: Colors.transparent,
                 borderRadius: 12.0,
                 borderWidth: 1.0,
                 buttonSize: 40.0,
-                fillColor: FlutterFlowTheme.of(context).accent1,
+                fillColor: FlutterFlowTheme.of(context).primaryBackground,
                 icon: Icon(
-                  Icons.refresh_rounded,
+                  Icons.info_outline,
                   color: FlutterFlowTheme.of(context).primaryText,
                   size: 24.0,
                 ),
                 onPressed: () async {
-                  context.pushNamed(
-                    ChatAiScreenWidget.routeName,
-                    extra: <String, dynamic>{
-                      kTransitionInfoKey: TransitionInfo(
-                        hasTransition: true,
-                        transitionType: PageTransitionType.fade,
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text('AI Mechanic Assistant'),
+                      content: Text(
+                        'I\'m your AI mechanic assistant. I can help you with:\n\n'
+                        '• Car diagnostics and trouble codes\n'
+                        '• Engine and transmission issues\n'
+                        '• Maintenance and repair guidance\n'
+                        '• OBD2 scanner questions\n\n'
+                        'Select your experience level to get personalized advice.',
                       ),
-                    },
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text('Got it'),
+                        ),
+                      ],
+                    ),
                   );
                 },
               ),
@@ -108,23 +112,12 @@ class _ChatAiScreenWidgetState extends State<ChatAiScreenWidget> {
           child: Container(
             width: double.infinity,
             height: double.infinity,
-            decoration: BoxDecoration(
-              color: FlutterFlowTheme.of(context).primaryBackground,
-              image: DecorationImage(
-                fit: BoxFit.cover,
-                image: Image.asset(
-                  'assets/images/blur_bg@1x.png',
-                ).image,
-              ),
-            ),
-            child: Align(
-              alignment: AlignmentDirectional(0.0, 0.0),
-              child: wrapWithModel(
-                model: _model.aiChatComponentModel,
-                updateCallback: () => safeSetState(() {}),
-                updateOnChange: true,
-                child: AiChatComponentWidget(),
-              ),
+            color: FlutterFlowTheme.of(context).primaryBackground,
+            child: wrapWithModel(
+              model: _model.aiChatComponentModel,
+              updateCallback: () => safeSetState(() {}),
+              updateOnChange: true,
+              child: AiChatComponentWidget(),
             ),
           ),
         ),

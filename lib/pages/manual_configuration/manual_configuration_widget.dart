@@ -1,50 +1,3 @@
-<<<<<<< HEAD
-import 'dart:convert';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:o_b_d2_scanner_frontend/pages/manual_configuration/manual_configuration_model.dart';
-import 'package:http/http.dart' as http;
-import '/flutter_flow/flutter_flow_theme.dart';
-import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-
-class ManualConfigurationWidget extends StatefulWidget {
-  const ManualConfigurationWidget({super.key});
-
-  @override
-  State<ManualConfigurationWidget> createState() =>
-      _ManualConfigurationWidgetState();
-}
-
-class _ManualConfigurationWidgetState
-    extends State<ManualConfigurationWidget> {
-  late ManualConfigurationModel _model;
-
-  final scaffoldKey = GlobalKey<ScaffoldState>();
-  final TextEditingController vinController = TextEditingController();
-  Map<String, dynamic>? vinResult;
-  bool isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _model = createModel(context, () => ManualConfigurationModel());
-  }
-
-  @override
-  void dispose() {
-    _model.dispose();
-    vinController.dispose();
-    super.dispose();
-  }
-=======
-import 'package:flutter/material.dart';
-import '../../flutter_flow/flutter_flow_theme.dart';
-
-class ManualConfigurationWidget extends StatelessWidget {
-  const ManualConfigurationWidget({Key? key}) : super(key: key);
->>>>>>> f478dc7 (Update all files to ensure clean structure)
 
   void _handleSubmit() async {
     final vin = vinController.text.trim().toUpperCase();
@@ -87,34 +40,17 @@ class ManualConfigurationWidget extends StatelessWidget {
       });
     }
   }
+=======
+import 'package:flutter/material.dart';
+import '../../flutter_flow/flutter_flow_theme.dart';
+
+class ManualConfigurationWidget extends StatelessWidget {
+  const ManualConfigurationWidget({Key? key}) : super(key: key);
+>>>>>>> f478dc7 (Update all files to ensure clean structure)
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-<<<<<<< HEAD
-      key: scaffoldKey,
-      backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
-      appBar: AppBar(
-        backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back,
-              color: FlutterFlowTheme.of(context).primaryText),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          'Manual Setup',
-          style: FlutterFlowTheme.of(context).headlineMedium.override(
-                font: GoogleFonts.interTight(
-                  fontWeight:
-                      FlutterFlowTheme.of(context).headlineMedium.fontWeight,
-                  fontStyle:
-                      FlutterFlowTheme.of(context).headlineMedium.fontStyle,
-                ),
-                color: FlutterFlowTheme.of(context).primaryText,
-              ),
-=======
-      appBar: AppBar(
         title: Text('Manual Configuration'),
       ),
       body: Padding(
@@ -126,7 +62,6 @@ class ManualConfigurationWidget extends StatelessWidget {
             const SizedBox(height: 16),
             Text('This is a placeholder for manual configuration.'),
           ],
->>>>>>> f478dc7 (Update all files to ensure clean structure)
         ),
         centerTitle: true,
       ),
@@ -210,6 +145,8 @@ class ManualConfigurationWidget extends StatelessWidget {
                 ),
             ],
           ),
+=======
+>>>>>>> f478dc7 (Update all files to ensure clean structure)
         ),
       ),
     );

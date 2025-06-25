@@ -7,10 +7,12 @@ import 'dart:ui';
 import '/flutter_flow/custom_functions.dart' as functions;
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../../flutter_flow/flutter_flow_theme.dart';
+import '../../../flutter_flow/flutter_flow_icon_button.dart';
+import '../../../flutter_flow/flutter_flow_util.dart';
+import '../../../models/chat_message.dart';
+import '../../../components/chat_component/writing_indicator/writing_indicator_widget.dart';
 import 'ai_chat_component_model.dart';
-export 'ai_chat_component_model.dart';
 
 class AiChatComponentWidget extends StatefulWidget {
   const AiChatComponentWidget({Key? key}) : super(key: key);
@@ -31,12 +33,7 @@ class _AiChatComponentWidgetState extends State<AiChatComponentWidget> {
 
   @override
   void dispose() {
-<<<<<<< HEAD
-    _model.maybeDispose();
-
-=======
-    _textController.dispose();
->>>>>>> f478dc7 (Update all files to ensure clean structure)
+    _model.dispose();
     super.dispose();
   }
 
@@ -49,7 +46,6 @@ class _AiChatComponentWidgetState extends State<AiChatComponentWidget> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-<<<<<<< HEAD
             Expanded(
               child: Align(
                 alignment: AlignmentDirectional(0.0, -1.0),
@@ -712,26 +708,7 @@ class _AiChatComponentWidgetState extends State<AiChatComponentWidget> {
                   ],
                 ),
               ),
-=======
-            Text('AI Chat (UI template)', style: FlutterFlowTheme.of(context).titleMedium),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _textController,
-              decoration: InputDecoration(
-                hintText: 'Type your message...',
-                border: OutlineInputBorder(),
-              ),
             ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () {},
-              child: Text('Send'),
->>>>>>> f478dc7 (Update all files to ensure clean structure)
-            ),
-            const SizedBox(height: 24),
-            EmptyListWidget(),
-            const SizedBox(height: 12),
-            WritingIndicatorWidget(),
           ],
         ),
       ),

@@ -1,20 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:o_b_d2_scanner_frontend/pages/home/home_page/home_page_widget.dart';
-import 'package:o_b_d2_scanner_frontend/pages/diagnostic/diagnostics_tab_widget.dart';
-
-class MainTabScaffold extends StatelessWidget {
-  const MainTabScaffold({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Main Tabs'),
-      ),
-      body: Center(
-        child: Text('MainTabScaffold (UI template)'),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
@@ -28,6 +16,16 @@ class MainTabScaffold extends StatelessWidget {
         currentIndex: 0,
         onTap: (index) {},
       ),
+    );
+  }
+}
+
+class _DiagnosticsTabPlaceholder extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Diagnostics')),
+      body: Center(child: Text('Diagnostics (UI template)')),
     );
   }
 } 

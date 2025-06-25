@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../flutter_flow/flutter_flow_theme.dart';
 
 class ChatTestWidget extends StatefulWidget {
   const ChatTestWidget({Key? key}) : super(key: key);
