@@ -42,8 +42,8 @@ class _AiChatComponentWidgetState extends State<AiChatComponentWidget> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              children: [
-                Container(
+                                                            children: [
+                                                              Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: FlutterFlowTheme.of(context).primary,
@@ -56,14 +56,14 @@ class _AiChatComponentWidgetState extends State<AiChatComponentWidget> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                Text(
+                                                                            Text(
                   'AI Mechanic Assistant',
                   style: FlutterFlowTheme.of(context).titleLarge.copyWith(
                     fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
+                                                                            ),
+                                                                          ),
+                                                                        ],
+                                                                      ),
             const SizedBox(height: 20),
             Expanded(
               child: _model.chatHistory.isEmpty
@@ -82,8 +82,8 @@ class _AiChatComponentWidgetState extends State<AiChatComponentWidget> {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
+                                                        children: [
+                                                          Container(
             width: 80,
             height: 80,
             decoration: BoxDecoration(
@@ -97,7 +97,7 @@ class _AiChatComponentWidgetState extends State<AiChatComponentWidget> {
             ),
           ),
           const SizedBox(height: 24),
-          Text(
+                                                                  Text(
             'AI Mechanic Assistant',
             style: FlutterFlowTheme.of(context).headlineMedium.copyWith(
               fontWeight: FontWeight.bold,
@@ -114,10 +114,10 @@ class _AiChatComponentWidgetState extends State<AiChatComponentWidget> {
               ),
               textAlign: TextAlign.center,
             ),
-          ),
-        ],
-      ),
-    );
+                                                      ),
+                                                  ],
+                                                ),
+                                              );
   }
 
   Widget _buildChatList() {
@@ -176,17 +176,17 @@ class _AiChatComponentWidgetState extends State<AiChatComponentWidget> {
                     color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
+                                    ),
+                                ],
+                              ),
               child: Text(
                 message.content,
                 style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
                   color: isUser ? Colors.white : FlutterFlowTheme.of(context).primaryText,
-                ),
-              ),
-            ),
-          ),
+                            ),
+                          ),
+                        ),
+                      ),
           if (isUser) ...[
             const SizedBox(width: 12),
             Container(
