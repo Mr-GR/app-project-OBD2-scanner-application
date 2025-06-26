@@ -13,6 +13,9 @@ class _AddVehicleWidgetState extends State<AddVehicleWidget> {
   final _formKey = GlobalKey<FormState>();
   final _vinController = TextEditingController();
   bool _isLoading = false;
+  bool _isLookingUp = false;
+  VehicleResponse? _previewVehicle;
+  bool _setPrimary = false;
 
   @override
   void dispose() {
@@ -26,34 +29,16 @@ class _AddVehicleWidgetState extends State<AddVehicleWidget> {
     }
 
     setState(() {
-      _isLoading = true;
+      _isLookingUp = true;
+      _previewVehicle = null;
     });
 
     try {
       final vehicle = await VehicleService.getVehicleByVin(_vinController.text.trim());
 
       if (mounted) {
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Vehicle found: ${vehicle.make} ${vehicle.model} ${vehicle.year}'),
-            backgroundColor: Colors.green,
-          ),
-        );
-
-        // Return vehicle data to home page
-        Navigator.pop(context, {
-          'make': vehicle.make,
-          'model': vehicle.model,
-          'year': vehicle.year,
-          'vin': vehicle.vin,
-          'vehicleType': vehicle.vehicleType,
-          'bodyClass': vehicle.bodyClass,
-          'engineModel': vehicle.engineModel,
-          'fuelType': vehicle.fuelType,
-          'transmission': vehicle.transmission,
-          'engineCylinders': vehicle.engineCylinders,
-          'engineDisplacement': vehicle.engineDisplacement,
+        setState(() {
+          _previewVehicle = vehicle;
         });
       }
     } catch (e) {
@@ -61,6 +46,48 @@ class _AddVehicleWidgetState extends State<AddVehicleWidget> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error looking up vehicle: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLookingUp = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _addVehicle() async {
+    if (_previewVehicle == null) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final savedVehicle = await VehicleService.addVehicle(
+        vin: _vinController.text.trim(),
+        isPrimary: _setPrimary,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Vehicle added successfully: ${savedVehicle.make} ${savedVehicle.model}'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Return success to trigger refresh
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error adding vehicle: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -90,9 +117,11 @@ class _AddVehicleWidgetState extends State<AddVehicleWidget> {
             children: [
               Text('Add Vehicle by VIN', style: FlutterFlowTheme.of(context).titleLarge),
               const SizedBox(height: 8),
-              Text('Enter your vehicle\'s VIN to automatically get vehicle information', 
+              Text('Enter your vehicle\'s VIN to automatically get vehicle information',
                    style: FlutterFlowTheme.of(context).bodyMedium),
               const SizedBox(height: 24),
+
+              // VIN Input
               TextFormField(
                 controller: _vinController,
                 decoration: const InputDecoration(
@@ -112,21 +141,30 @@ class _AddVehicleWidgetState extends State<AddVehicleWidget> {
                   }
                   return null;
                 },
+                onChanged: (value) {
+                  if (_previewVehicle != null) {
+                    setState(() {
+                      _previewVehicle = null;
+                    });
+                  }
+                },
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 16),
+
+              // Lookup Button
               SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: _isLoading ? null : _lookupVehicle,
+                  onPressed: _isLookingUp ? null : _lookupVehicle,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: FlutterFlowTheme.of(context).primary,
+                    backgroundColor: FlutterFlowTheme.of(context).secondary,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: _isLoading
+                  child: _isLookingUp
                       ? const SizedBox(
                           height: 20,
                           width: 20,
@@ -138,7 +176,84 @@ class _AddVehicleWidgetState extends State<AddVehicleWidget> {
                       : const Text('Lookup Vehicle'),
                 ),
               ),
-              const SizedBox(height: 16),
+
+              // Vehicle Preview
+              if (_previewVehicle != null) ...[
+                const SizedBox(height: 24),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: FlutterFlowTheme.of(context).secondaryBackground,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.green.withOpacity(0.3)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.check_circle, color: Colors.green, size: 20),
+                          const SizedBox(width: 8),
+                          Text('Vehicle Found', style: FlutterFlowTheme.of(context).titleSmall),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _vehicleInfoRow('Make', _previewVehicle!.make),
+                      _vehicleInfoRow('Model', _previewVehicle!.model),
+                      _vehicleInfoRow('Year', _previewVehicle!.year),
+                      _vehicleInfoRow('VIN', _previewVehicle!.vin ?? ''),
+                      if (_previewVehicle!.vehicleType?.isNotEmpty == true)
+                        _vehicleInfoRow('Type', _previewVehicle!.vehicleType!),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Set as Primary Checkbox
+                CheckboxListTile(
+                  title: const Text('Set as Primary Vehicle'),
+                  subtitle: const Text('Use this vehicle for diagnostic context in AI chat'),
+                  value: _setPrimary,
+                  onChanged: (value) {
+                    setState(() {
+                      _setPrimary = value ?? false;
+                    });
+                  },
+                  contentPadding: EdgeInsets.zero,
+                ),
+                const SizedBox(height: 16),
+
+                // Add Vehicle Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _addVehicle,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: FlutterFlowTheme.of(context).primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : const Text('Add Vehicle to Garage'),
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 24),
+
+              // Info Card
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -151,11 +266,11 @@ class _AddVehicleWidgetState extends State<AddVehicleWidget> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.info_outline, 
-                             color: FlutterFlowTheme.of(context).primary, 
+                        Icon(Icons.info_outline,
+                             color: FlutterFlowTheme.of(context).primary,
                              size: 20),
                         const SizedBox(width: 8),
-                        Text('What is a VIN?', 
+                        Text('What is a VIN?',
                              style: FlutterFlowTheme.of(context).titleSmall),
                       ],
                     ),
@@ -170,6 +285,32 @@ class _AddVehicleWidgetState extends State<AddVehicleWidget> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _vehicleInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 60,
+            child: Text(
+              '$label:',
+              style: FlutterFlowTheme.of(context).bodySmall.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value.isNotEmpty ? value : 'Unknown',
+              style: FlutterFlowTheme.of(context).bodySmall,
+            ),
+          ),
+        ],
       ),
     );
   }
