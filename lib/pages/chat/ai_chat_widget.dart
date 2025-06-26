@@ -489,11 +489,6 @@ class _AiChatWidgetState extends State<AiChatWidget> {
                   Expanded(
                     child: TextField(
                       controller: _controller,
-                      onSubmitted: (value) {
-                        if (value.trim().isNotEmpty) {
-                          sendMessage(value.trim());
-                        }
-                      },
                       decoration: InputDecoration(
                         hintText: selectedLevel == null
                             ? 'Select your level first...'

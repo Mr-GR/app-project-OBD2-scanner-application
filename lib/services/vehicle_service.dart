@@ -5,12 +5,10 @@ import '../config.dart';
 class VehicleService {
   static const String _baseUrl = 'http://${Config.baseUrl}/api';
 
+  // Add vehicle by VIN (using new backend endpoint)
   static Future<VehicleResponse> addVehicle({
-    required String make,
-    required String model,
-    required String year,
-    String? trim,
-    String? vin,
+    required String vin,
+    bool isPrimary = false,
   }) async {
     try {
       final response = await http.post(
@@ -19,25 +17,24 @@ class VehicleService {
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          'make': make,
-          'model': model,
-          'year': year,
-          'trim': trim,
           'vin': vin,
+          'is_primary': isPrimary,
         }),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
-        return VehicleResponse.fromJson(data);
+        return VehicleResponse.fromDatabaseJson(data);
       } else {
-        throw Exception('Failed to add vehicle: ${response.statusCode}');
+        final error = jsonDecode(response.body);
+        throw Exception(error['detail'] ?? 'Failed to add vehicle: ${response.statusCode}');
       }
     } catch (e) {
       throw Exception('Network error: $e');
     }
   }
 
+  // Get all stored vehicles
   static Future<List<VehicleResponse>> getVehicles() async {
     try {
       final response = await http.get(
@@ -48,8 +45,9 @@ class VehicleService {
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        return data.map((json) => VehicleResponse.fromJson(json)).toList();
+        final data = jsonDecode(response.body);
+        final List<dynamic> vehicleList = data['vehicles'];
+        return vehicleList.map((json) => VehicleResponse.fromDatabaseJson(json)).toList();
       } else {
         throw Exception('Failed to get vehicles: ${response.statusCode}');
       }
@@ -58,6 +56,68 @@ class VehicleService {
     }
   }
 
+  // Delete a vehicle
+  static Future<void> deleteVehicle(String vehicleId) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$_baseUrl/vehicles/$vehicleId'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode != 200) {
+        final error = jsonDecode(response.body);
+        throw Exception(error['detail'] ?? 'Failed to delete vehicle');
+      }
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
+  // Set vehicle as primary
+  static Future<VehicleResponse> setPrimaryVehicle(String vehicleId) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$_baseUrl/vehicles/$vehicleId/primary'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return VehicleResponse.fromDatabaseJson(data);
+      } else {
+        final error = jsonDecode(response.body);
+        throw Exception(error['detail'] ?? 'Failed to set primary vehicle');
+      }
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
+  // Get primary vehicle info (for chat context)
+  static Future<Map<String, dynamic>> getPrimaryVehicleInfo() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/vehicles/primary/info'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('Failed to get primary vehicle info');
+      }
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
+  // Get vehicle by VIN (for preview before adding - using existing endpoint)
   static Future<VehicleResponse> getVehicleByVin(String vin) async {
     try {
       final response = await http.get(
@@ -98,6 +158,7 @@ class VehicleResponse {
   final String? plantCity;
   final String? plantState;
   final String? plantCountry;
+  final bool isPrimary;
   final DateTime createdAt;
 
   VehicleResponse({
@@ -119,16 +180,18 @@ class VehicleResponse {
     this.plantCity,
     this.plantState,
     this.plantCountry,
+    this.isPrimary = false,
     required this.createdAt,
   });
 
+  // For VIN lookup (preview)
   factory VehicleResponse.fromVinApi(Map<String, dynamic> json, String vin) {
     final basicInfo = json['basic_info'] ?? {};
     final detailedInfo = json['detailed_info'] ?? {};
     final manufacturerInfo = json['manufacturer_info'] ?? {};
-    
+
     return VehicleResponse(
-      id: DateTime.now().millisecondsSinceEpoch.toString(), // Generate temporary ID
+      id: '0', // Temporary ID for preview
       make: basicInfo['make'] ?? '',
       model: basicInfo['model'] ?? '',
       year: basicInfo['year'] ?? '',
@@ -145,32 +208,34 @@ class VehicleResponse {
       plantCity: manufacturerInfo['plant_city'],
       plantState: manufacturerInfo['plant_state'],
       plantCountry: manufacturerInfo['plant_country'],
+      isPrimary: false,
       createdAt: DateTime.now(),
     );
   }
 
-  factory VehicleResponse.fromJson(Map<String, dynamic> json) {
+  // For database stored vehicles
+  factory VehicleResponse.fromDatabaseJson(Map<String, dynamic> json) {
     return VehicleResponse(
-      id: json['id'] ?? '',
+      id: json['id'].toString(),
       make: json['make'] ?? '',
       model: json['model'] ?? '',
-      year: json['year'] ?? '',
-      trim: json['trim'],
+      year: json['year']?.toString() ?? '',
       vin: json['vin'],
       vehicleType: json['vehicle_type'],
       bodyClass: json['body_class'],
       engineModel: json['engine_model'],
       fuelType: json['fuel_type'],
       transmission: json['transmission'],
-      driveType: json['drive_type'],
       engineCylinders: json['engine_cylinders'],
       engineDisplacement: json['engine_displacement'],
-      manufacturer: json['manufacturer'],
-      plantCity: json['plant_city'],
-      plantState: json['plant_state'],
-      plantCountry: json['plant_country'],
+      isPrimary: json['is_primary'] ?? false,
       createdAt: DateTime.parse(json['created_at'] ?? DateTime.now().toIso8601String()),
     );
+  }
+
+  // Legacy support for existing fromJson
+  factory VehicleResponse.fromJson(Map<String, dynamic> json) {
+    return VehicleResponse.fromDatabaseJson(json);
   }
 
   Map<String, dynamic> toJson() {
@@ -193,6 +258,7 @@ class VehicleResponse {
       'plant_city': plantCity,
       'plant_state': plantState,
       'plant_country': plantCountry,
+      'is_primary': isPrimary,
       'created_at': createdAt.toIso8601String(),
     };
   }
