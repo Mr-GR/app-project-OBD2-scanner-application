@@ -51,6 +51,7 @@ dependencies:
   smooth_page_indicator: ^1.2.1
   from_css_color: ^2.0.0
   flutter_keyboard_visibility: ^6.0.0
+  flutter_markdown: ^0.6.18
 
   # Navigation
   go_router: ^14.2.7

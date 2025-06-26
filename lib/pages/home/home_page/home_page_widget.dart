@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:o_b_d2_scanner_frontend/config.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 
 class HomePageWidget extends StatefulWidget {
@@ -39,7 +40,7 @@ class _HomePageWidgetState extends State<HomePageWidget> {
       _dtcError = null;
     });
     try {
-      final response = await http.get(Uri.parse('http://localhost:8080/api/scanner/dtc/lookup?code=$code'));
+      final response = await http.get(Uri.parse('http://${Config.baseUrl}/api/scanner/dtc/lookup?code=$code'));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         setState(() {
