@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import 'package:go_router/go_router.dart';
+import '/components/terms_modal/terms_modal_widget.dart';
 
 class AuthWelcomeScreenWidget extends StatefulWidget {
   const AuthWelcomeScreenWidget({super.key});
@@ -44,8 +45,23 @@ class _AuthWelcomeScreenWidgetState extends State<AuthWelcomeScreenWidget> {
     if (_currentPage < _steps.length - 1) {
       _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.ease);
     } else {
-      GoRouter.of(context).go('/home');
+      _showTermsModal();
     }
+  }
+
+  void _showTermsModal() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => TermsModalWidget(
+        onAccept: () {
+          GoRouter.of(context).go('/home');
+        },
+        onDecline: () {
+          // Stay on onboarding, user can try again
+        },
+      ),
+    );
   }
 
   @override

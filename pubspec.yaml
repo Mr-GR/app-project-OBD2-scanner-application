@@ -72,6 +72,7 @@ dependencies:
 
   # URL handling
   url_launcher: ^6.3.1
+  webview_flutter: ^4.4.4
 
   # Authentication (for future Firebase integration)
   google_sign_in: ^6.3.0
