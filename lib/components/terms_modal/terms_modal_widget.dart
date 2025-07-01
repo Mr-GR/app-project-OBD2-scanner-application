@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../config.dart';
@@ -22,6 +23,7 @@ class _TermsModalWidgetState extends State<TermsModalWidget> {
   late WebViewController _controller;
   bool _isLoading = true;
   bool _hasError = false;
+  Timer? _loadingTimer;
   
   // Document viewing and acceptance state
   bool _isViewingTerms = true;
@@ -29,11 +31,21 @@ class _TermsModalWidgetState extends State<TermsModalWidget> {
   bool _hasViewedPrivacy = false;
   bool _acceptedTerms = false;
   bool _acceptedPrivacy = false;
+  
+  // Track errors per document
+  bool _hasTermsError = false;
+  bool _hasPrivacyError = false;
 
   @override
   void initState() {
     super.initState();
     _initializeWebView();
+  }
+
+  @override
+  void dispose() {
+    _loadingTimer?.cancel();
+    super.dispose();
   }
 
   void _initializeWebView() {
@@ -45,11 +57,14 @@ class _TermsModalWidgetState extends State<TermsModalWidget> {
             if (progress == 100 && _isLoading) {
               setState(() {
                 _isLoading = false;
-                // Mark current document as viewed
+                _hasError = false;
+                // Mark current document as viewed and clear its error
                 if (_isViewingTerms) {
                   _hasViewedTerms = true;
+                  _hasTermsError = false;
                 } else {
                   _hasViewedPrivacy = true;
+                  _hasPrivacyError = false;
                 }
               });
             }
@@ -59,22 +74,51 @@ class _TermsModalWidgetState extends State<TermsModalWidget> {
               _isLoading = true;
               _hasError = false;
             });
-          },
-          onPageFinished: (String url) {
-            setState(() {
-              _isLoading = false;
-              // Mark current document as viewed
-              if (_isViewingTerms) {
-                _hasViewedTerms = true;
-              } else {
-                _hasViewedPrivacy = true;
+            // Set timeout for loading
+            _loadingTimer?.cancel();
+            _loadingTimer = Timer(Duration(seconds: 10), () {
+              if (_isLoading) {
+                setState(() {
+                  _isLoading = false;
+                  _hasError = true;
+                  // Track which document has error and clear its acceptance
+                  if (_isViewingTerms) {
+                    _hasTermsError = true;
+                    _acceptedTerms = false;
+                    _hasViewedTerms = false;
+                  } else {
+                    _hasPrivacyError = true;
+                    _acceptedPrivacy = false;
+                    _hasViewedPrivacy = false;
+                  }
+                });
               }
             });
           },
+          onPageFinished: (String url) {
+            _loadingTimer?.cancel();
+            // Check if the loaded page is an error page
+            _checkForErrorPage();
+          },
+          onNavigationRequest: (NavigationRequest request) {
+            // Allow all navigation requests
+            return NavigationDecision.navigate;
+          },
           onWebResourceError: (WebResourceError error) {
+            _loadingTimer?.cancel();
             setState(() {
               _isLoading = false;
               _hasError = true;
+              // Track which document has error and clear its acceptance
+              if (_isViewingTerms) {
+                _hasTermsError = true;
+                _acceptedTerms = false;
+                _hasViewedTerms = false;
+              } else {
+                _hasPrivacyError = true;
+                _acceptedPrivacy = false;
+                _hasViewedPrivacy = false;
+              }
             });
           },
         ),
@@ -86,12 +130,73 @@ class _TermsModalWidgetState extends State<TermsModalWidget> {
     setState(() {
       _isViewingTerms = viewTerms;
       _isLoading = true;
-      _hasError = false;
+      // Set global error state based on current document's error state
+      _hasError = _isViewingTerms ? _hasTermsError : _hasPrivacyError;
     });
     _controller.loadRequest(Uri.parse(_isViewingTerms ? Config.termsUrl : Config.privacyUrl));
   }
 
-  bool get _canAccept => _acceptedTerms && _acceptedPrivacy;
+  void _checkForErrorPage() async {
+    try {
+      // Check if the page contains error indicators
+      final title = await _controller.getTitle();
+      final url = await _controller.currentUrl();
+      
+      // Check for common error page indicators
+      if (title != null && 
+          (title.toLowerCase().contains('not available') || 
+           title.toLowerCase().contains('not found') ||
+           title.toLowerCase().contains('error') ||
+           url == null ||
+           url.startsWith('chrome-error://'))) {
+        
+        setState(() {
+          _isLoading = false;
+          _hasError = true;
+          // Track which document has error and clear its acceptance
+          if (_isViewingTerms) {
+            _hasTermsError = true;
+            _acceptedTerms = false;
+            _hasViewedTerms = false;
+          } else {
+            _hasPrivacyError = true;
+            _acceptedPrivacy = false;
+            _hasViewedPrivacy = false;
+          }
+        });
+      } else {
+        setState(() {
+          _isLoading = false;
+          _hasError = false;
+          // Mark current document as viewed and clear its error
+          if (_isViewingTerms) {
+            _hasViewedTerms = true;
+            _hasTermsError = false;
+          } else {
+            _hasViewedPrivacy = true;
+            _hasPrivacyError = false;
+          }
+        });
+      }
+    } catch (e) {
+      // If we can't check the page, assume error
+      setState(() {
+        _isLoading = false;
+        _hasError = true;
+        if (_isViewingTerms) {
+          _hasTermsError = true;
+          _acceptedTerms = false;
+          _hasViewedTerms = false;
+        } else {
+          _hasPrivacyError = true;
+          _acceptedPrivacy = false;
+          _hasViewedPrivacy = false;
+        }
+      });
+    }
+  }
+
+  bool get _canAccept => _acceptedTerms && _acceptedPrivacy && !_hasTermsError && !_hasPrivacyError;
 
   @override
   Widget build(BuildContext context) {
@@ -177,7 +282,7 @@ class _TermsModalWidgetState extends State<TermsModalWidget> {
                                       fontWeight: _isViewingTerms ? FontWeight.w600 : FontWeight.normal,
                                     ),
                                   ),
-                                  if (_hasViewedTerms) ...[
+                                  if (_hasViewedTerms && !_hasTermsError) ...[
                                     SizedBox(width: 4),
                                     Icon(
                                       Icons.check_circle,
@@ -218,7 +323,7 @@ class _TermsModalWidgetState extends State<TermsModalWidget> {
                                       fontWeight: !_isViewingTerms ? FontWeight.w600 : FontWeight.normal,
                                     ),
                                   ),
-                                  if (_hasViewedPrivacy) ...[
+                                  if (_hasViewedPrivacy && !_hasPrivacyError) ...[
                                     SizedBox(width: 4),
                                     Icon(
                                       Icons.check_circle,
@@ -268,7 +373,7 @@ class _TermsModalWidgetState extends State<TermsModalWidget> {
                     children: [
                       Checkbox(
                         value: _acceptedTerms,
-                        onChanged: _hasViewedTerms ? (value) {
+                        onChanged: (_hasViewedTerms && !_hasTermsError) ? (value) {
                           setState(() {
                             _acceptedTerms = value ?? false;
                           });
@@ -277,7 +382,7 @@ class _TermsModalWidgetState extends State<TermsModalWidget> {
                       ),
                       Expanded(
                         child: GestureDetector(
-                          onTap: _hasViewedTerms ? () {
+                          onTap: (_hasViewedTerms && !_hasTermsError) ? () {
                             setState(() {
                               _acceptedTerms = !_acceptedTerms;
                             });
@@ -285,7 +390,7 @@ class _TermsModalWidgetState extends State<TermsModalWidget> {
                           child: Text(
                             'I have read and agree to the Terms & Conditions',
                             style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
-                              color: _hasViewedTerms 
+                              color: (_hasViewedTerms && !_hasTermsError)
                                   ? FlutterFlowTheme.of(context).primaryText
                                   : FlutterFlowTheme.of(context).secondaryText,
                               fontSize: 14,
@@ -300,7 +405,7 @@ class _TermsModalWidgetState extends State<TermsModalWidget> {
                     children: [
                       Checkbox(
                         value: _acceptedPrivacy,
-                        onChanged: _hasViewedPrivacy ? (value) {
+                        onChanged: (_hasViewedPrivacy && !_hasPrivacyError) ? (value) {
                           setState(() {
                             _acceptedPrivacy = value ?? false;
                           });
@@ -309,7 +414,7 @@ class _TermsModalWidgetState extends State<TermsModalWidget> {
                       ),
                       Expanded(
                         child: GestureDetector(
-                          onTap: _hasViewedPrivacy ? () {
+                          onTap: (_hasViewedPrivacy && !_hasPrivacyError) ? () {
                             setState(() {
                               _acceptedPrivacy = !_acceptedPrivacy;
                             });
@@ -317,7 +422,7 @@ class _TermsModalWidgetState extends State<TermsModalWidget> {
                           child: Text(
                             'I have read and agree to the Privacy Policy',
                             style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
-                              color: _hasViewedPrivacy 
+                              color: (_hasViewedPrivacy && !_hasPrivacyError)
                                   ? FlutterFlowTheme.of(context).primaryText
                                   : FlutterFlowTheme.of(context).secondaryText,
                               fontSize: 14,

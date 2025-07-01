@@ -20,6 +20,7 @@ android/.gradle/
 android/app/*.iml
 android/local.properties
 android/.idea/
+android/app/*.cxx/
 
 # VSCode & IntelliJ
 .idea/
