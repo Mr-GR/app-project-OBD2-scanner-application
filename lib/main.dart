@@ -11,7 +11,7 @@ import 'pages/onboarding_flow/auth_forgot_password/auth_forgot_password_widget.d
 import 'pages/chat/chat_screen_widget.dart';
 import 'pages/chat/ai_chat_widget.dart';
 import 'pages/chat/chat_test_widget.dart';
-import 'pages/home/home_page/home_page_widget.dart';
+import 'pages/main_tab_navigator.dart';
 import 'pages/settings/connection_settings_widget.dart';
 import 'pages/profile/profile_settings_screen.dart';
 import 'pages/profile/subscription_details_screen.dart';
@@ -146,7 +146,7 @@ GoRouter createRouter() {
       ),
       GoRoute(
         path: '/home',
-        builder: (context, state) => const HomePageWidget(),
+        builder: (context, state) => const MainTabNavigator(),
       ),
       GoRoute(
         path: '/connection-settings',
