@@ -18,11 +18,12 @@ class _HomePageWidgetState extends State<HomePageWidget> {
   bool _vehiclesLoading = true;
   final PageController _pageController = PageController(viewportFraction: 0.8);
 
-  // Quick Code Check state
-  final TextEditingController _dtcController = TextEditingController();
-  Map<String, String>? _dtcResult;
-  String? _dtcError;
-  bool _dtcLoading = false;
+  // Quick Chat state
+  final TextEditingController _quickChatController = TextEditingController();
+  String? _quickChatResponse;
+  String? _quickChatError;
+  bool _quickChatLoading = false;
+  int _chatExchangeCount = 0;
 
   @override
   void initState() {
@@ -136,43 +137,268 @@ class _HomePageWidgetState extends State<HomePageWidget> {
     }
   }
 
-  Future<void> _lookupDtcCode() async {
-    final code = _dtcController.text.trim().toUpperCase();
-    if (code.isEmpty) return;
+  Future<void> _sendQuickChat() async {
+    final message = _quickChatController.text.trim();
+    if (message.isEmpty) return;
+
+    // Check if we've had 2+ exchanges, redirect to full chat
+    if (_chatExchangeCount >= 2) {
+      GoRouter.of(context).push('/chat');
+      return;
+    }
 
     setState(() {
-      _dtcLoading = true;
-      _dtcResult = null;
-      _dtcError = null;
+      _quickChatLoading = true;
+      _quickChatResponse = null;
+      _quickChatError = null;
     });
 
     try {
-      final response = await http.get(Uri.parse('http://${Config.baseUrl}/api/scanner/dtc/lookup?code=$code'));
+      // Get primary vehicle for context
+      final primaryVehicle = _vehicles.isNotEmpty 
+          ? _vehicles.firstWhere((v) => v.isPrimary, orElse: () => _vehicles.first)
+          : null;
+
+      // Build request body with vehicle context
+      final requestBody = {
+        'message': message,
+        if (primaryVehicle != null) 'context': {
+          'vin': primaryVehicle.vin,
+          'vehicle_info': {
+            'make': primaryVehicle.make,
+            'model': primaryVehicle.model,
+            'year': primaryVehicle.year.toString(),
+            if (primaryVehicle.vehicleType?.isNotEmpty == true)
+              'type': primaryVehicle.vehicleType,
+          }
+        }
+      };
+
+      final response = await http.post(
+        Uri.parse('http://${Config.baseUrl}/api/chat/quick'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(requestBody),
+      );
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        
+        // Debug: Print the response to see the actual structure
+        print('Quick Chat API Response: $data');
+        
+        // Try different possible response field names and ensure they're strings
+        String? responseText;
+        
+        if (data['response'] != null) {
+          responseText = data['response'].toString();
+        } else if (data['message'] != null) {
+          responseText = data['message'].toString();
+        } else if (data['reply'] != null) {
+          responseText = data['reply'].toString();
+        } else if (data['answer'] != null) {
+          responseText = data['answer'].toString();
+        } else if (data['text'] != null) {
+          responseText = data['text'].toString();
+        } else if (data['content'] != null) {
+          responseText = data['content'].toString();
+        }
+        
+        // Clean up the response text - remove JSON wrapper patterns
+        if (responseText != null) {
+          responseText = _cleanResponseText(responseText);
+        }
+        
         setState(() {
-          _dtcResult = {
-            'code': data['code'] ?? code,
-            'description': data['description'] ?? 'No description found.'
-          };
-          _dtcError = null;
+          _quickChatResponse = responseText ?? 'No response received. Raw: ${data.toString()}';
+          _quickChatError = null;
+          _chatExchangeCount++;
         });
+        _quickChatController.clear();
+        
+        // If this was the second exchange, show hint about full chat
+        if (_chatExchangeCount >= 2) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('For longer conversations, tap "AI Chat" to continue'),
+              backgroundColor: FlutterFlowTheme.of(context).primary,
+              action: SnackBarAction(
+                label: 'Open Chat',
+                textColor: Colors.white,
+                onPressed: () => GoRouter.of(context).push('/chat'),
+              ),
+            ),
+          );
+        }
       } else {
+        print('Quick Chat API Error - Status: ${response.statusCode}, Body: ${response.body}');
         setState(() {
-          _dtcResult = null;
-          _dtcError = 'Code not found.';
+          _quickChatResponse = null;
+          _quickChatError = 'API Error ${response.statusCode}: ${response.body}';
         });
       }
     } catch (e) {
       setState(() {
-        _dtcResult = null;
-        _dtcError = 'Error: $e';
+        _quickChatResponse = null;
+        _quickChatError = 'Error: $e';
       });
     } finally {
       setState(() {
-        _dtcLoading = false;
+        _quickChatLoading = false;
       });
     }
+  }
+
+  void _resetQuickChat() {
+    setState(() {
+      _quickChatController.clear();
+      _quickChatResponse = null;
+      _quickChatError = null;
+      _chatExchangeCount = 0;
+    });
+  }
+
+  String _cleanResponseText(String text) {
+    // Remove common JSON wrapper patterns
+    String cleaned = text.trim();
+    
+    // Remove {content: "..."} pattern
+    if (cleaned.startsWith('{content:') || cleaned.startsWith('{"content":')) {
+      // Extract content from JSON-like structure
+      final contentMatch = RegExp(r'\{["\s]*content["\s]*:\s*["\s]*(.+?)["\s]*\}').firstMatch(cleaned);
+      if (contentMatch != null) {
+        cleaned = contentMatch.group(1) ?? cleaned;
+      }
+    }
+    
+    // Remove {message: "..."} pattern
+    if (cleaned.startsWith('{message:') || cleaned.startsWith('{"message":')) {
+      final messageMatch = RegExp(r'\{["\s]*message["\s]*:\s*["\s]*(.+?)["\s]*\}').firstMatch(cleaned);
+      if (messageMatch != null) {
+        cleaned = messageMatch.group(1) ?? cleaned;
+      }
+    }
+    
+    // Remove surrounding quotes if present
+    if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
+      cleaned = cleaned.substring(1, cleaned.length - 1);
+    }
+    
+    // Remove escape characters
+    cleaned = cleaned.replaceAll('\\"', '"');
+    cleaned = cleaned.replaceAll('\\n', '\n');
+    cleaned = cleaned.replaceAll('\\t', '\t');
+    
+    return cleaned.trim();
+  }
+
+  Widget _buildFormattedResponse(String response) {
+    // Split response into paragraphs and format
+    final paragraphs = response.split('\n\n');
+    List<Widget> formattedWidgets = [];
+
+    for (int i = 0; i < paragraphs.length; i++) {
+      final paragraph = paragraphs[i].trim();
+      if (paragraph.isEmpty) continue;
+
+      // Check for different formatting patterns
+      if (paragraph.startsWith('**') && paragraph.endsWith('**')) {
+        // Bold headers
+        formattedWidgets.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: Text(
+              paragraph.replaceAll('**', ''),
+              style: FlutterFlowTheme.of(context).titleSmall.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Colors.blue,
+              ),
+            ),
+          ),
+        );
+      } else if (paragraph.startsWith('•') || paragraph.startsWith('-')) {
+        // Bullet points
+        formattedWidgets.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4.0, left: 8.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(top: 6, right: 8),
+                  width: 4,
+                  height: 4,
+                  decoration: const BoxDecoration(
+                    color: Colors.blue,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    paragraph.replaceFirst(RegExp(r'^[•-]\s*'), ''),
+                    style: FlutterFlowTheme.of(context).bodyMedium,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      } else if (paragraph.contains(':') && paragraph.split(':')[0].length < 30) {
+        // Key-value pairs (like "Code: P0420")
+        final parts = paragraph.split(':');
+        if (parts.length == 2) {
+          formattedWidgets.add(
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: RichText(
+                text: TextSpan(
+                  style: FlutterFlowTheme.of(context).bodyMedium,
+                  children: [
+                    TextSpan(
+                      text: '${parts[0].trim()}: ',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.orange,
+                      ),
+                    ),
+                    TextSpan(
+                      text: parts[1].trim(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        } else {
+          // Regular paragraph
+          formattedWidgets.add(_buildRegularParagraph(paragraph));
+        }
+      } else {
+        // Regular paragraph
+        formattedWidgets.add(_buildRegularParagraph(paragraph));
+      }
+
+      // Add spacing between paragraphs (except last one)
+      if (i < paragraphs.length - 1) {
+        formattedWidgets.add(const SizedBox(height: 8));
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: formattedWidgets,
+    );
+  }
+
+  Widget _buildRegularParagraph(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Text(
+        text,
+        style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
+          height: 1.4, // Better line spacing
+        ),
+      ),
+    );
   }
 
   @override
@@ -225,13 +451,6 @@ class _HomePageWidgetState extends State<HomePageWidget> {
                     controller: _pageController,
                     children: [
                       _QuickActionCard(
-                        icon: Icons.flash_on,
-                        color: Colors.orange,
-                        title: 'Quick Scan',
-                        subtitle: 'Start a new vehicle scan',
-                        onTap: () {},
-                      ),
-                      _QuickActionCard(
                         icon: Icons.chat_bubble_outline,
                         color: Colors.blue,
                         title: 'AI Chat',
@@ -252,7 +471,7 @@ class _HomePageWidgetState extends State<HomePageWidget> {
                 ),
                 const SizedBox(height: 24),
 
-                // Quick Code Check
+                // Quick Chat Section
                 Card(
                   color: FlutterFlowTheme.of(context).secondaryBackground,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -261,59 +480,118 @@ class _HomePageWidgetState extends State<HomePageWidget> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Quick Code Check', style: FlutterFlowTheme.of(context).titleMedium),
-                        const SizedBox(height: 12),
-                        TextField(
-                          controller: _dtcController,
-                          textCapitalization: TextCapitalization.characters,
-                          decoration: const InputDecoration(
-                            hintText: 'Enter DTC Code',
-                            border: OutlineInputBorder(),
-                          ),
-                          onSubmitted: (_) => _lookupDtcCode(),
-                        ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _dtcLoading ? null : _lookupDtcCode,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: FlutterFlowTheme.of(context).primary,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                        Row(
+                          children: [
+                            Icon(Icons.flash_on, color: Colors.orange, size: 24),
+                            const SizedBox(width: 8),
+                            Text('Quick Chat', style: FlutterFlowTheme.of(context).titleMedium),
+                            const Spacer(),
+                            if (_quickChatResponse != null || _quickChatError != null)
+                              TextButton.icon(
+                                onPressed: _resetQuickChat,
+                                icon: const Icon(Icons.refresh, size: 18),
+                                label: const Text('Reset'),
                               ),
-                            ),
-                            child: _dtcLoading
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                  )
-                                : const Text('Check Code'),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _chatExchangeCount >= 2 
+                              ? 'Tap "AI Chat" above for longer conversations'
+                              : 'Ask me anything about your car or OBD2 diagnostics',
+                          style: FlutterFlowTheme.of(context).bodySmall.copyWith(
+                            color: _chatExchangeCount >= 2 ? Colors.orange : null,
                           ),
                         ),
-                        if (_dtcResult != null)
-                          Card(
-                            color: FlutterFlowTheme.of(context).primaryBackground,
-                            margin: const EdgeInsets.only(top: 16),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Code: ${_dtcResult!['code']}', style: FlutterFlowTheme.of(context).titleSmall),
-                                  const SizedBox(height: 8),
-                                  Text('Description: ${_dtcResult!['description']}', style: FlutterFlowTheme.of(context).bodyMedium),
-                                ],
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _quickChatController,
+                                enabled: _chatExchangeCount < 2,
+                                decoration: InputDecoration(
+                                  hintText: _chatExchangeCount >= 2 
+                                      ? 'Use full AI Chat for more questions'
+                                      : 'What would you like to know?',
+                                  border: const OutlineInputBorder(),
+                                  suffixIcon: _quickChatLoading
+                                      ? const Padding(
+                                          padding: EdgeInsets.all(12),
+                                          child: SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: CircularProgressIndicator(strokeWidth: 2),
+                                          ),
+                                        )
+                                      : null,
+                                ),
+                                onSubmitted: (_) => _chatExchangeCount < 2 ? _sendQuickChat() : null,
+                                maxLines: 2,
+                                minLines: 1,
                               ),
                             ),
+                            const SizedBox(width: 12),
+                            ElevatedButton(
+                              onPressed: _chatExchangeCount >= 2 
+                                  ? () => GoRouter.of(context).push('/chat')
+                                  : (_quickChatLoading ? null : _sendQuickChat),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _chatExchangeCount >= 2 
+                                    ? Colors.blue 
+                                    : FlutterFlowTheme.of(context).primary,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: Text(_chatExchangeCount >= 2 ? 'Full Chat' : 'Ask'),
+                            ),
+                          ],
+                        ),
+                        if (_quickChatResponse != null) ...[
+                          const SizedBox(height: 16),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: FlutterFlowTheme.of(context).primaryBackground,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.blue.withOpacity(0.3),
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(Icons.smart_toy, color: Colors.blue, size: 18),
+                                    const SizedBox(width: 8),
+                                    Text('AI Response', style: FlutterFlowTheme.of(context).titleSmall),
+                                    const Spacer(),
+                                    Icon(Icons.auto_awesome, color: Colors.blue.withOpacity(0.6), size: 16),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                _buildFormattedResponse(_quickChatResponse!),
+                              ],
+                            ),
                           ),
-                        if (_dtcError != null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 16),
-                            child: Text(_dtcError!, style: const TextStyle(color: Colors.red)),
+                        ],
+                        if (_quickChatError != null) ...[
+                          const SizedBox(height: 16),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.red.withOpacity(0.3)),
+                            ),
+                            child: Text(_quickChatError!, style: const TextStyle(color: Colors.red)),
                           ),
+                        ],
                       ],
                     ),
                   ),
@@ -378,17 +656,6 @@ class _HomePageWidgetState extends State<HomePageWidget> {
             ),
           ),
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
-        selectedItemColor: FlutterFlowTheme.of(context).primary,
-        unselectedItemColor: FlutterFlowTheme.of(context).secondaryText,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.analytics), label: 'Diagnostics'),
-        ],
-        currentIndex: 0,
-        onTap: (index) {},
       ),
     );
   }
