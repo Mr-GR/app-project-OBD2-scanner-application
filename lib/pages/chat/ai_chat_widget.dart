@@ -52,7 +52,7 @@ class _AiChatWidgetState extends State<AiChatWidget> {
 
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token');
-    final url = Uri.parse('http://${Config.baseUrl}/api/chat'); // Always use /api/chat
+    final url = Uri.parse('${Config.baseUrl}/api/chat'); // Always use /api/chat
 
     try {
       final response = await http.post(

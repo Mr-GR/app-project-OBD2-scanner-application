@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import 'home/home_page/home_page_widget.dart';
 import 'diagnostic/diagnostics_tab_widget.dart';
+import 'connection/connection_screen.dart';
 
 class MainTabNavigator extends StatefulWidget {
   const MainTabNavigator({super.key});
@@ -16,6 +17,7 @@ class _MainTabNavigatorState extends State<MainTabNavigator> {
   List<Widget> get _pages => [
     const HomePageContent(),
     const DiagnosticsTabContent(),
+    const ConnectionTabContent(),
   ];
 
   @override
@@ -29,9 +31,11 @@ class _MainTabNavigatorState extends State<MainTabNavigator> {
         backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
         selectedItemColor: FlutterFlowTheme.of(context).primary,
         unselectedItemColor: FlutterFlowTheme.of(context).secondaryText,
+        type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.analytics), label: 'Diagnostics'),
+          BottomNavigationBarItem(icon: Icon(Icons.bluetooth), label: 'Connection'),
         ],
         currentIndex: _currentIndex,
         onTap: (index) {
@@ -59,5 +63,14 @@ class DiagnosticsTabContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const DiagnosticsTabWidget();
+  }
+}
+
+class ConnectionTabContent extends StatelessWidget {
+  const ConnectionTabContent({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const ConnectionScreen();
   }
 }

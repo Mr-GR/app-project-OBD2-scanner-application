@@ -73,6 +73,10 @@ dependencies:
   # Permissions and location
   permission_handler: ^11.4.0
   location: ^6.0.2
+  
+  # Bluetooth and device info for OBD2 bridge
+  flutter_blue_plus: ^1.14.0
+  device_info_plus: ^9.1.0
 
   # URL handling
   url_launcher: ^6.3.1

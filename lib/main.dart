@@ -8,7 +8,6 @@ import 'pages/onboarding_flow/auth_welcome/auth_welcome_screen_widget.dart';
 import 'pages/onboarding_flow/auth_login/auth_login_widget.dart';
 import 'pages/onboarding_flow/auth_create/auth_create_widget.dart';
 import 'pages/onboarding_flow/auth_forgot_password/auth_forgot_password_widget.dart';
-import 'pages/chat/chat_screen_widget.dart';
 import 'pages/chat/ai_chat_widget.dart';
 import 'pages/chat/chat_test_widget.dart';
 import 'pages/main_tab_navigator.dart';
@@ -17,7 +16,7 @@ import 'pages/profile/profile_settings_screen.dart';
 import 'pages/profile/subscription_details_screen.dart';
 import 'pages/diagnostic/scan_results_screen.dart';
 import 'pages/vehicles/add_vehicle_widget.dart';
-import 'widgets/integration_example.dart';
+import 'pages/connection/connection_screen.dart';
 import 'widgets/accessibility_widgets.dart';
 import 'test/test_widget.dart';
 
@@ -167,6 +166,10 @@ GoRouter createRouter() {
       GoRoute(
         path: '/add-vehicle',
         builder: (context, state) => const AddVehicleWidget(),
+      ),
+      GoRoute(
+        path: '/obd2-connection',
+        builder: (context, state) => const ConnectionScreen(),
       ),
     ],
   );

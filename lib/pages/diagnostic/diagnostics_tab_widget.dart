@@ -47,78 +47,12 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
     super.initState();
     print('DiagnosticsTabWidget initState called'); // Debug
     
-    // Load mock data immediately for testing
-    _loadMockData();
-    
-    // Temporarily disable API calls for testing
-    // _loadScannerStatus();
-    // _loadTroubleCodes();
-    // _loadVehicleHealth();
+    // Load live data from OBD2 scanner
+    _loadScannerStatus();
+    _loadTroubleCodes();
+    _loadVehicleHealth();
   }
 
-  void _loadMockData() {
-    print('Loading mock data...'); // Debug
-    // Force mock data to load immediately
-    setState(() {
-      // Scanner status mock data
-      _isConnected = true;
-      _isConnecting = false;
-      _deviceName = 'ELM327 Bluetooth OBD2';
-      _batteryVoltage = 12.4;
-      
-      // Trouble codes mock data
-      _activeCodes = [
-        {
-          'code': 'P0420',
-          'description': 'Catalyst System Efficiency Below Threshold (Bank 1)',
-          'severity': 'warning'
-        }
-      ];
-      _pendingCodes = [
-        {
-          'code': 'P0171',
-          'description': 'System Too Lean (Bank 1)',
-          'severity': 'warning'
-        },
-        {
-          'code': 'P0442',
-          'description': 'Evaporative Emission Control System Leak Detected (small leak)',
-          'severity': 'info'
-        }
-      ];
-      _codesLoading = false;
-      _codesError = null;
-      
-      // Vehicle health mock data
-      _healthStatus = {
-        'engine': 'good',
-        'transmission': 'good',
-        'emissions': 'warning',
-        'fuel_system': 'warning',
-        'cooling_system': 'good',
-        'electrical_system': 'good',
-        'brake_system': 'good',
-        'exhaust_system': 'warning'
-      };
-      _healthLoading = false;
-      
-      // Live data mock
-      _liveData = {
-        'rpm': 850,
-        'speed': 0,
-        'engine_temp': 88,
-        'fuel_level': 68,
-      };
-      _liveDataLoading = false;
-    });
-    
-    print('Mock data loaded - isConnected: $_isConnected'); // Debug
-    
-    // Start live data updates since we're "connected"
-    if (_liveDataTimer == null) {
-      _startLiveDataUpdates();
-    }
-  }
 
   @override
   void dispose() {
@@ -128,7 +62,7 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
 
   Future<void> _loadScannerStatus() async {
     try {
-      final response = await http.get(Uri.parse('http://${Config.baseUrl}/api/scanner/status'));
+      final response = await http.get(Uri.parse('${Config.baseUrl}/api/scanner/status'));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (mounted) {
@@ -145,24 +79,17 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
       }
     } catch (e) {
       print('Error loading scanner status: $e');
-      // Use mock data for testing
-      _loadMockScannerStatus();
-    }
-  }
-
-  void _loadMockScannerStatus() {
-    if (mounted) {
-      setState(() {
-        _isConnected = true;
-        _deviceName = 'ELM327 Bluetooth OBD2';
-        _batteryVoltage = 12.4;
-      });
-      
-      if (_isConnected && _liveDataTimer == null) {
-        _startLiveDataUpdates();
+      // Set disconnected state on error
+      if (mounted) {
+        setState(() {
+          _isConnected = false;
+          _deviceName = 'ELM327 OBD2';
+          _batteryVoltage = 0.0;
+        });
       }
     }
   }
+
 
   Future<void> _toggleConnection() async {
     if (_isConnecting) return;
@@ -173,7 +100,7 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
 
     try {
       final endpoint = _isConnected ? 'disconnect' : 'connect';
-      final response = await http.post(Uri.parse('http://${Config.baseUrl}/api/scanner/$endpoint'));
+      final response = await http.post(Uri.parse('${Config.baseUrl}/api/scanner/$endpoint'));
       
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -218,7 +145,7 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
     if (!_isConnected) return;
     
     try {
-      final response = await http.get(Uri.parse('http://${Config.baseUrl}/api/scanner/live-data'));
+      final response = await http.get(Uri.parse('${Config.baseUrl}/api/scanner/live-data'));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (mounted) {
@@ -230,34 +157,15 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
       }
     } catch (e) {
       print('Error loading live data: $e');
-      // Use mock data for testing
-      _loadMockLiveData();
+      // Set loading state to false on error
+      if (mounted) {
+        setState(() {
+          _liveDataLoading = false;
+        });
+      }
     }
   }
 
-  void _loadMockLiveData() {
-    if (!_isConnected) return;
-    
-    // Simulate realistic changing values
-    final baseRpm = 800;
-    final rpmVariation = (DateTime.now().millisecondsSinceEpoch % 1000) / 10;
-    
-    if (mounted) {
-      setState(() {
-        _liveData = {
-          'rpm': (baseRpm + rpmVariation).round(),
-          'speed': 0, // Idle speed
-          'engine_temp': 87 + (DateTime.now().millisecondsSinceEpoch % 100) / 50, // 87-89°C
-          'fuel_level': 68, // 68% fuel
-          'throttle_position': 0, // Idle
-          'intake_air_temp': 25,
-          'coolant_temp': 88,
-          'fuel_pressure': 3.2,
-        };
-        _liveDataLoading = false;
-      });
-    }
-  }
 
   Future<void> _loadTroubleCodes() async {
     setState(() {
@@ -266,7 +174,7 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
     });
 
     try {
-      final response = await http.get(Uri.parse('http://${Config.baseUrl}/api/scanner/dtc/scan'));
+      final response = await http.get(Uri.parse('${Config.baseUrl}/api/scanner/dtc/scan'));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (mounted) {
@@ -284,42 +192,17 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
       }
     } catch (e) {
       print('Error loading trouble codes: $e');
-      // Use mock data for testing
-      _loadMockTroubleCodes();
-    }
-  }
-
-  void _loadMockTroubleCodes() {
-    if (mounted) {
       setState(() {
-        _activeCodes = [
-          {
-            'code': 'P0420',
-            'description': 'Catalyst System Efficiency Below Threshold (Bank 1)',
-            'severity': 'warning'
-          }
-        ];
-        _pendingCodes = [
-          {
-            'code': 'P0171',
-            'description': 'System Too Lean (Bank 1)',
-            'severity': 'warning'
-          },
-          {
-            'code': 'P0442',
-            'description': 'Evaporative Emission Control System Leak Detected (small leak)',
-            'severity': 'info'
-          }
-        ];
+        _codesError = 'Failed to connect to OBD2 scanner: $e';
         _codesLoading = false;
-        _codesError = null;
       });
     }
   }
 
+
   Future<void> _clearTroubleCodes() async {
     try {
-      final response = await http.post(Uri.parse('http://${Config.baseUrl}/api/scanner/dtc/clear'));
+      final response = await http.post(Uri.parse('${Config.baseUrl}/api/scanner/dtc/clear'));
       if (response.statusCode == 200) {
         _showSnackBar('Trouble codes cleared', Colors.green);
         _loadTroubleCodes();
@@ -337,7 +220,7 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
     });
 
     try {
-      final response = await http.get(Uri.parse('http://${Config.baseUrl}/api/scanner/health-check'));
+      final response = await http.get(Uri.parse('${Config.baseUrl}/api/scanner/health-check'));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (mounted) {
@@ -349,28 +232,14 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
       }
     } catch (e) {
       print('Error loading vehicle health: $e');
-      // Use mock data for testing
-      _loadMockVehicleHealth();
+      if (mounted) {
+        setState(() {
+          _healthLoading = false;
+        });
+      }
     }
   }
 
-  void _loadMockVehicleHealth() {
-    if (mounted) {
-      setState(() {
-        _healthStatus = {
-          'engine': 'good',
-          'transmission': 'good',
-          'emissions': 'warning', // Because of P0420 code
-          'fuel_system': 'warning', // Because of P0171 code
-          'cooling_system': 'good',
-          'electrical_system': 'good',
-          'brake_system': 'good',
-          'exhaust_system': 'warning'
-        };
-        _healthLoading = false;
-      });
-    }
-  }
 
   Future<void> _exportReport() async {
     try {
