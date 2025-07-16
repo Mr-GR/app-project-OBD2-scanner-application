@@ -16,12 +16,13 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
   @override
   void initState() {
     super.initState();
+    // Use shared OBD2 Bluetooth Service singleton
     _obd2Service = OBD2BluetoothService();
   }
 
   @override
   void dispose() {
-    _obd2Service.dispose();
+    // Don't dispose the shared service - it's used by other tabs
     super.dispose();
   }
 
@@ -43,7 +44,7 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
         ),
         body: Consumer<OBD2BluetoothService>(
           builder: (context, service, child) {
-            return Padding(
+            return SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -169,41 +170,52 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
                               style: FlutterFlowTheme.of(context).headlineSmall,
                             ),
                             const SizedBox(height: 16),
-                            ...service.availableDevices.map((device) {
-                              final isSelected = service.selectedDevice?.remoteId == device.remoteId;
-                              return Card(
-                                color: isSelected 
-                                    ? FlutterFlowTheme.of(context).primary.withValues(alpha: 0.1)
-                                    : null,
-                                child: ListTile(
-                                  leading: Icon(
-                                    Icons.bluetooth,
-                                    color: isSelected 
-                                        ? FlutterFlowTheme.of(context).primary
-                                        : Colors.grey,
-                                  ),
-                                  title: Text(
-                                    device.platformName.isNotEmpty 
-                                        ? device.platformName 
-                                        : 'Unknown Device',
-                                    style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
-                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                    ),
-                                  ),
-                                  subtitle: Text(
-                                    device.remoteId.toString(),
-                                    style: FlutterFlowTheme.of(context).bodySmall,
-                                  ),
-                                  trailing: isSelected
-                                      ? Icon(
-                                          Icons.check_circle,
-                                          color: FlutterFlowTheme.of(context).primary,
-                                        )
-                                      : null,
-                                  onTap: () => service.selectDevice(device),
+                            // Scrollable device list with max height
+                            ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxHeight: MediaQuery.of(context).size.height * 0.3, // Max 30% of screen height
+                              ),
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  children: service.availableDevices.map((device) {
+                                    final isSelected = service.selectedDevice?.remoteId == device.remoteId;
+                                    return Card(
+                                      margin: const EdgeInsets.only(bottom: 8),
+                                      color: isSelected 
+                                          ? FlutterFlowTheme.of(context).primary.withValues(alpha: 0.1)
+                                          : null,
+                                      child: ListTile(
+                                        leading: Icon(
+                                          Icons.bluetooth,
+                                          color: isSelected 
+                                              ? FlutterFlowTheme.of(context).primary
+                                              : Colors.grey,
+                                        ),
+                                        title: Text(
+                                          device.platformName.isNotEmpty 
+                                              ? device.platformName 
+                                              : 'Unknown Device',
+                                          style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
+                                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                          ),
+                                        ),
+                                        subtitle: Text(
+                                          device.remoteId.toString(),
+                                          style: FlutterFlowTheme.of(context).bodySmall,
+                                        ),
+                                        trailing: isSelected
+                                            ? Icon(
+                                                Icons.check_circle,
+                                                color: FlutterFlowTheme.of(context).primary,
+                                              )
+                                            : null,
+                                        onTap: () => service.selectDevice(device),
+                                      ),
+                                    );
+                                  }).toList(),
                                 ),
-                              );
-                            }),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -264,14 +276,23 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(
-                                        _formatDataLabel(entry.key),
-                                        style: FlutterFlowTheme.of(context).bodyMedium,
+                                      Expanded(
+                                        flex: 2,
+                                        child: Text(
+                                          _formatDataLabel(entry.key),
+                                          style: FlutterFlowTheme.of(context).bodyMedium,
+                                        ),
                                       ),
-                                      Text(
-                                        '${entry.value}${_getUnit(entry.key)}',
-                                        style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
-                                          fontWeight: FontWeight.bold,
+                                      Expanded(
+                                        flex: 3,
+                                        child: Text(
+                                          '${entry.value}${_getUnit(entry.key)}',
+                                          style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          textAlign: TextAlign.end,
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 2,
                                         ),
                                       ),
                                     ],
@@ -307,6 +328,7 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
                                 _buildTestButton('Engine Temp', 'engine_temp', service),
                                 _buildTestButton('Fuel Level', 'fuel_level', service),
                                 _buildTestButton('Throttle', 'throttle_position', service),
+                                _buildTestButton('VIN', 'vin', service),
                               ],
                             ),
                           ],
@@ -352,6 +374,8 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
         return 'Coolant Temp';
       case 'fuel_pressure':
         return 'Fuel Pressure';
+      case 'vin':
+        return 'VIN';
       default:
         return key;
     }
@@ -372,6 +396,8 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
         return '%';
       case 'fuel_pressure':
         return ' kPa';
+      case 'vin':
+        return '';
       default:
         return '';
     }

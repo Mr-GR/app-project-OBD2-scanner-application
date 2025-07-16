@@ -1,15 +1,14 @@
 import 'dart:convert';
 import 'dart:async';
-import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:o_b_d2_scanner_frontend/config.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
+import '/services/obd2_bluetooth_service.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'package:path_provider/path_provider.dart';
 
 class DiagnosticsTabWidget extends StatefulWidget {
   const DiagnosticsTabWidget({super.key});
@@ -21,16 +20,8 @@ class DiagnosticsTabWidget extends StatefulWidget {
 class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
   final PageController _liveDataController = PageController(viewportFraction: 0.8);
   
-  // Scanner status
-  bool _isConnected = false;
-  bool _isConnecting = false;
-  String _deviceName = 'ELM327 OBD2';
-  double _batteryVoltage = 0.0;
-  
-  // Live data
-  Map<String, dynamic> _liveData = {};
-  bool _liveDataLoading = false;
-  Timer? _liveDataTimer;
+  // OBD2 Bluetooth Service - shared singleton instance
+  late OBD2BluetoothService _obd2Service;
   
   // Trouble codes
   List<Map<String, dynamic>> _activeCodes = [];
@@ -38,208 +29,321 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
   bool _codesLoading = false;
   String? _codesError;
   
-  // Vehicle health
-  Map<String, dynamic> _healthStatus = {};
-  bool _healthLoading = false;
+  // AI Vehicle Analysis
+  String? _aiAnalysis;
+  bool _aiAnalysisLoading = false;
+  
+  // Connection loading states
+  bool _scanningDevices = false;
+  bool _connectingToDevice = false;
 
   @override
   void initState() {
     super.initState();
     print('DiagnosticsTabWidget initState called'); // Debug
     
-    // Load live data from OBD2 scanner
-    _loadScannerStatus();
-    _loadTroubleCodes();
-    _loadVehicleHealth();
+    // Use shared OBD2 Bluetooth Service singleton
+    _obd2Service = OBD2BluetoothService();
+    
+    // Listen for connection state changes
+    _obd2Service.addListener(_onConnectionStateChanged);
+    
+    // Load data from OBD2 scanner
+    _loadRealTroubleCodes();
+    // AI analysis will be triggered manually by user clicking Analyze button
+  }
+  
+  void _onConnectionStateChanged() {
+    if (mounted) {
+      setState(() {
+        // Trigger UI update when connection state changes
+      });
+    }
+  }
+  
+  Future<void> _tryAutoConnect() async {
+    try {
+      // Try to connect to OBD2 scanner automatically
+      final connected = await _obd2Service.connectToOBD2Scanner();
+      if (connected) {
+        print('✅ Diagnostics tab auto-connected to OBD2 scanner');
+        setState(() {
+          // Trigger UI update when connected
+        });
+      } else {
+        print('❌ Could not auto-connect to OBD2 scanner');
+      }
+    } catch (e) {
+      print('Auto-connect error: $e');
+    }
   }
 
 
   @override
   void dispose() {
-    _liveDataTimer?.cancel();
+    _obd2Service.removeListener(_onConnectionStateChanged);
     super.dispose();
   }
 
-  Future<void> _loadScannerStatus() async {
-    try {
-      final response = await http.get(Uri.parse('${Config.baseUrl}/api/scanner/status'));
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (mounted) {
-          setState(() {
-            _isConnected = data['connected'] ?? false;
-            _deviceName = data['device_name'] ?? 'ELM327 OBD2';
-            _batteryVoltage = (data['battery_voltage'] ?? 0.0).toDouble();
-          });
-          
-          if (_isConnected && _liveDataTimer == null) {
-            _startLiveDataUpdates();
-          }
-        }
-      }
-    } catch (e) {
-      print('Error loading scanner status: $e');
-      // Set disconnected state on error
-      if (mounted) {
-        setState(() {
-          _isConnected = false;
-          _deviceName = 'ELM327 OBD2';
-          _batteryVoltage = 0.0;
-        });
-      }
-    }
-  }
-
-
-  Future<void> _toggleConnection() async {
-    if (_isConnecting) return;
-    
-    setState(() {
-      _isConnecting = true;
-    });
-
-    try {
-      final endpoint = _isConnected ? 'disconnect' : 'connect';
-      final response = await http.post(Uri.parse('${Config.baseUrl}/api/scanner/$endpoint'));
-      
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (mounted) {
-          setState(() {
-            _isConnected = data['connected'] ?? !_isConnected;
-          });
-          
-          if (_isConnected) {
-            _startLiveDataUpdates();
-            _showSnackBar('Connected to OBD2 scanner', Colors.green);
-          } else {
-            _stopLiveDataUpdates();
-            _showSnackBar('Disconnected from OBD2 scanner', Colors.orange);
-          }
-        }
-      }
-    } catch (e) {
-      _showSnackBar('Connection error: $e', Colors.red);
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isConnecting = false;
-        });
-      }
-    }
-  }
-
-  void _startLiveDataUpdates() {
-    _liveDataTimer?.cancel();
-    _liveDataTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
-      _loadLiveData();
-    });
-  }
-
-  void _stopLiveDataUpdates() {
-    _liveDataTimer?.cancel();
-    _liveDataTimer = null;
-  }
-
-  Future<void> _loadLiveData() async {
-    if (!_isConnected) return;
-    
-    try {
-      final response = await http.get(Uri.parse('${Config.baseUrl}/api/scanner/live-data'));
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (mounted) {
-          setState(() {
-            _liveData = data;
-            _liveDataLoading = false;
-          });
-        }
-      }
-    } catch (e) {
-      print('Error loading live data: $e');
-      // Set loading state to false on error
-      if (mounted) {
-        setState(() {
-          _liveDataLoading = false;
-        });
-      }
-    }
-  }
-
-
-  Future<void> _loadTroubleCodes() async {
+  Future<void> _loadRealTroubleCodes() async {
     setState(() {
       _codesLoading = true;
       _codesError = null;
     });
 
     try {
-      final response = await http.get(Uri.parse('${Config.baseUrl}/api/scanner/dtc/scan'));
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (mounted) {
-          setState(() {
-            _activeCodes = List<Map<String, dynamic>>.from(data['active_codes'] ?? []);
-            _pendingCodes = List<Map<String, dynamic>>.from(data['pending_codes'] ?? []);
-            _codesLoading = false;
-          });
-        }
-      } else {
+      // Check if connected, if not show error
+      if (!_obd2Service.isConnected) {
+        print('📱 OBD2 not connected, please connect via Connection tab');
         setState(() {
-          _codesError = 'Failed to scan for codes';
+          _codesError = 'Not connected to OBD2 scanner. Please connect via Connection tab.';
+          _codesLoading = false;
+        });
+        return;
+      }
+      
+      print('🔍 Reading DTC codes from OBD2 scanner...');
+      
+      // Get real DTC codes from OBD2 scanner
+      final dtcCodes = await _obd2Service.readDTCodes();
+      
+      print('📋 DTC codes received: $dtcCodes');
+      
+      if (mounted) {
+        setState(() {
+          if (dtcCodes.isEmpty) {
+            _activeCodes = [];
+            _pendingCodes = [];
+            _codesError = null; // No error, just no codes
+          } else {
+            // Convert string codes to the expected format
+            _activeCodes = dtcCodes.map((code) => {
+              'code': code,
+              'description': _obd2Service.getDTCDescription(code),
+            }).toList();
+            _pendingCodes = []; // For now, assume all codes are active
+          }
           _codesLoading = false;
         });
       }
     } catch (e) {
-      print('Error loading trouble codes: $e');
+      print('❌ Error loading real trouble codes: $e');
       setState(() {
-        _codesError = 'Failed to connect to OBD2 scanner: $e';
+        _codesError = 'Failed to read DTC codes: $e';
         _codesLoading = false;
       });
     }
   }
 
 
+
+
   Future<void> _clearTroubleCodes() async {
+    if (!_obd2Service.isConnected) {
+      _showSnackBar('OBD2 scanner not connected', Colors.red);
+      return;
+    }
+    
     try {
-      final response = await http.post(Uri.parse('${Config.baseUrl}/api/scanner/dtc/clear'));
-      if (response.statusCode == 200) {
-        _showSnackBar('Trouble codes cleared', Colors.green);
-        _loadTroubleCodes();
+      // Send clear DTC command directly to OBD2 scanner
+      final response = await _obd2Service.sendOBD2Command('04');
+      if (response.contains('ERROR')) {
+        _showSnackBar('Failed to clear codes: $response', Colors.red);
       } else {
-        _showSnackBar('Failed to clear codes', Colors.red);
+        _showSnackBar('Trouble codes cleared successfully', Colors.green);
+        // Wait a moment then reload codes
+        await Future.delayed(const Duration(seconds: 2));
+        _loadRealTroubleCodes();
       }
     } catch (e) {
       _showSnackBar('Error clearing codes: $e', Colors.red);
     }
   }
 
-  Future<void> _loadVehicleHealth() async {
+  Future<void> _generateAIAnalysis() async {
     setState(() {
-      _healthLoading = true;
+      _aiAnalysisLoading = true;
     });
 
     try {
-      final response = await http.get(Uri.parse('${Config.baseUrl}/api/scanner/health-check'));
+      // Gather data for AI analysis
+      final Map<String, dynamic> analysisData = {
+        'live_data': _obd2Service.liveData,
+        'trouble_codes': _activeCodes,
+        'connection_status': _obd2Service.isConnected,
+        'device_name': _obd2Service.selectedDevice?.platformName ?? 'Unknown',
+      };
+      
+      // Send data to AI analysis endpoint
+      final response = await http.post(
+        Uri.parse('${Config.baseUrl}/api/chat/analyze-vehicle'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'message': 'Analyze my vehicle diagnostics data. Please provide text-only response without emojis or special characters.',
+          'vehicle_data': analysisData,
+        }),
+      );
+      
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (mounted) {
           setState(() {
-            _healthStatus = data;
-            _healthLoading = false;
+            _aiAnalysis = data['response'] ?? 'No analysis available';
+            _aiAnalysisLoading = false;
           });
         }
+      } else {
+        setState(() {
+          _aiAnalysis = 'AI analysis temporarily unavailable';
+          _aiAnalysisLoading = false;
+        });
       }
     } catch (e) {
-      print('Error loading vehicle health: $e');
+      print('Error generating AI analysis: $e');
       if (mounted) {
         setState(() {
-          _healthLoading = false;
+          _aiAnalysis = 'Unable to generate AI analysis. Please check connection.';
+          _aiAnalysisLoading = false;
         });
       }
     }
   }
 
+  Future<void> _scanForDevices() async {
+    try {
+      setState(() {
+        _scanningDevices = true;
+      });
+      
+      final success = await _obd2Service.scanForDevices();
+      if (!success && mounted) {
+        _showSnackBar('Failed to scan for devices. Check permissions.', Colors.red);
+      } else if (mounted) {
+        _showSnackBar('Scanning completed', Colors.green);
+      }
+    } catch (e) {
+      if (mounted) {
+        _showSnackBar('Scan error: $e', Colors.red);
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _scanningDevices = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _connectToDevice() async {
+    if (_obd2Service.selectedDevice == null) {
+      _showSnackBar('Please select a device first', Colors.orange);
+      return;
+    }
+    
+    try {
+      setState(() {
+        _connectingToDevice = true;
+      });
+      
+      final success = await _obd2Service.connectToSelectedDevice();
+      if (success && mounted) {
+        _showSnackBar('Connected to ${_obd2Service.selectedDevice!.platformName}', Colors.green);
+        // Reload data after connection
+        _loadRealTroubleCodes();
+      } else if (mounted) {
+        _showSnackBar('Failed to connect to device', Colors.red);
+      }
+    } catch (e) {
+      if (mounted) {
+        _showSnackBar('Connection error: $e', Colors.red);
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _connectingToDevice = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _checkPermissions() async {
+    final granted = await _obd2Service.requestPermissionsAgain();
+    if (mounted) {
+      if (granted) {
+        _showSnackBar('✅ All permissions granted! You can now scan for devices.', Colors.green);
+      } else {
+        _showSnackBar('❌ Permissions required for Bluetooth scanning', Colors.orange);
+      }
+    }
+  }
+
+  Future<void> _forceBluetoothPermission() async {
+    final success = await _obd2Service.forceBluetoothPermissionRequest();
+    if (mounted) {
+      if (success) {
+        _showSnackBar('🔵 Bluetooth permission requested! Check device settings if needed.', Colors.blue);
+      } else {
+        _showSnackBar('❌ Failed to request Bluetooth permission.', Colors.red);
+      }
+    }
+  }
+
+  Future<void> _forceLocationPermission() async {
+    final success = await _obd2Service.forceLocationPermissionRequest();
+    if (mounted) {
+      if (success) {
+        _showSnackBar('📍 Location permission granted! You can now scan for devices.', Colors.green);
+      } else {
+        _showSnackBar('❌ Location permission denied. Please enable in Settings > Privacy > Location Services.', Colors.orange);
+      }
+    }
+  }
+
+  Future<void> _disconnectFromDevice() async {
+    try {
+      await _obd2Service.disconnectFromOBD2();
+      if (mounted) {
+        _showSnackBar('Disconnected from OBD2 device', Colors.orange);
+        setState(() {
+          // Trigger UI update when disconnected
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        _showSnackBar('Error disconnecting: $e', Colors.red);
+      }
+    }
+  }
+
+  Future<void> _requestLiveDataSequential() async {
+    print('🔍 Live Data button clicked - Connection status: ${_obd2Service.isConnected}');
+    print('📊 Current live data: ${_obd2Service.liveData}');
+    
+    _showSnackBar('Requesting RPM data...', Colors.blue);
+    
+    // Use single request approach like connection tab (which works)
+    // Start with RPM only to test - user can click multiple times for different data
+    _obd2Service.requestData('rpm');
+  }
+
+  String _calculateFuelRange(dynamic fuelLevel) {
+    if (fuelLevel == null) return '--';
+    
+    try {
+      final fuelPercent = int.parse(fuelLevel.toString());
+      // Estimate based on average car: 50L tank, 8L/100km fuel efficiency
+      // Range = (tank_size * fuel_percent / 100) / (consumption_per_100km / 100)
+      const double tankSize = 50.0; // liters
+      const double fuelConsumption = 8.0; // L/100km
+      
+      final double remainingFuel = tankSize * (fuelPercent / 100.0);
+      final double estimatedRange = (remainingFuel / fuelConsumption) * 100.0;
+      
+      return estimatedRange.round().toString();
+    } catch (e) {
+      return '--';
+    }
+  }
 
   Future<void> _exportReport() async {
     try {
@@ -294,19 +398,18 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
 
             // Scanner Status Section
             _buildPDFSection('SCANNER STATUS', [
-              'Device: $_deviceName',
-              'Connection Status: ${_isConnected ? 'Connected' : 'Disconnected'}',
-              if (_batteryVoltage > 0) 'Battery Voltage: ${_batteryVoltage.toStringAsFixed(1)}V',
+              'Device: ${_obd2Service.selectedDevice?.platformName ?? 'Unknown'}',
+              'Connection Status: ${_obd2Service.isConnected ? 'Connected' : 'Disconnected'}',
             ]),
             pw.SizedBox(height: 16),
 
             // Live Data Section
-            if (_liveData.isNotEmpty) ...[
+            if (_obd2Service.liveData.isNotEmpty) ...[
               _buildPDFSection('LIVE DATA', [
-                if (_liveData['rpm'] != null) 'Engine RPM: ${_liveData['rpm']} rpm',
-                if (_liveData['speed'] != null) 'Vehicle Speed: ${_liveData['speed']} mph',
-                if (_liveData['engine_temp'] != null) 'Engine Temperature: ${_liveData['engine_temp']}°C',
-                if (_liveData['fuel_level'] != null) 'Fuel Level: ${_liveData['fuel_level']}%',
+                if (_obd2Service.liveData['rpm'] != null) 'Engine RPM: ${_obd2Service.liveData['rpm']} rpm',
+                if (_obd2Service.liveData['speed'] != null) 'Vehicle Speed: ${_obd2Service.liveData['speed']} mph',
+                if (_obd2Service.liveData['engine_temp'] != null) 'Engine Temperature: ${_obd2Service.liveData['engine_temp']}°C',
+                if (_obd2Service.liveData['fuel_level'] != null) 'Fuel Level: ${_obd2Service.liveData['fuel_level']}%',
               ]),
               pw.SizedBox(height: 16),
             ],
@@ -340,29 +443,20 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
               pw.SizedBox(height: 16),
             ],
 
-            // Vehicle Health Section
-            if (_healthStatus.isNotEmpty) ...[
-              _buildPDFSection('VEHICLE HEALTH STATUS', []),
+            // AI Analysis Section
+            if (_aiAnalysis != null) ...[
+              _buildPDFSection('AI VEHICLE ANALYSIS', []),
               pw.SizedBox(height: 8),
-              pw.Table(
-                border: pw.TableBorder.all(color: PdfColors.grey400),
-                children: _healthStatus.entries.map((entry) {
-                  final status = entry.value.toString().toUpperCase();
-                  final color = status == 'GOOD' ? PdfColors.green800 :
-                               status == 'WARNING' ? PdfColors.orange800 : PdfColors.red800;
-                  return pw.TableRow(
-                    children: [
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(entry.key.toUpperCase().replaceAll('_', ' ')),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(status, style: pw.TextStyle(color: color, fontWeight: pw.FontWeight.bold)),
-                      ),
-                    ],
-                  );
-                }).toList(),
+              pw.Container(
+                padding: const pw.EdgeInsets.all(12),
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(color: PdfColors.grey400),
+                  borderRadius: pw.BorderRadius.circular(4),
+                ),
+                child: pw.Text(
+                  _aiAnalysis!,
+                  style: pw.TextStyle(fontSize: 11, lineSpacing: 1.2),
+                ),
               ),
               pw.SizedBox(height: 24),
             ],
@@ -436,8 +530,12 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
 
   @override
   Widget build(BuildContext context) {
-    print('DiagnosticsTabWidget build - isConnected: $_isConnected, activeCodes: ${_activeCodes.length}, healthStatus: ${_healthStatus.keys.length}'); // Debug
-    return Scaffold(
+    print('DiagnosticsTabWidget build - isConnected: ${_obd2Service.isConnected}, activeCodes: ${_activeCodes.length}, aiAnalysis: ${_aiAnalysis != null}'); // Debug
+    return ChangeNotifierProvider.value(
+      value: _obd2Service,
+      child: Consumer<OBD2BluetoothService>(
+        builder: (context, obd2Service, child) {
+          return Scaffold(
       backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
       appBar: AppBar(
         backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
@@ -454,20 +552,14 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              _loadScannerStatus();
-              _loadTroubleCodes();
-              _loadVehicleHealth();
+              _loadRealTroubleCodes();
             },
           ),
         ],
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          await Future.wait([
-            _loadScannerStatus(),
-            _loadTroubleCodes(),
-            _loadVehicleHealth(),
-          ]);
+          await _loadRealTroubleCodes();
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -478,147 +570,379 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
               children: [
                 _buildScannerStatusCard(),
                 const SizedBox(height: 24),
-                _buildLiveDataCarousel(),
+                _buildAIAnalysisSection(),
                 const SizedBox(height: 24),
                 _buildTroubleCodesSection(),
                 const SizedBox(height: 24),
-                _buildVehicleHealthDashboard(),
-                const SizedBox(height: 24),
-                _buildQuickActionsGrid(),
+                _buildLiveDataCarousel(),
               ],
             ),
           ),
         ),
+      ),
+    );
+        }
       ),
     );
   }
 
   Widget _buildScannerStatusCard() {
-    return Card(
-      color: FlutterFlowTheme.of(context).secondaryBackground,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    return Consumer<OBD2BluetoothService>(
+      builder: (context, obd2Service, child) {
+        return Card(
+          color: FlutterFlowTheme.of(context).secondaryBackground,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  _isConnected ? Icons.bluetooth_connected : Icons.bluetooth_disabled,
-                  color: _isConnected ? Colors.green : Colors.grey,
-                  size: 24,
+                Row(
+                  children: [
+                    Icon(
+                      obd2Service.isConnected ? Icons.bluetooth_connected : Icons.bluetooth_disabled,
+                      color: obd2Service.isConnected ? Colors.green : Colors.grey,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Scanner Status', style: FlutterFlowTheme.of(context).titleMedium),
+                          Text(
+                            obd2Service.isConnected 
+                                ? 'Connected to ${obd2Service.selectedDevice?.platformName ?? 'OBD2 Device'}' 
+                                : 'Disconnected - Use scanner controls below',
+                            style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
+                              color: obd2Service.isConnected ? Colors.green : Colors.grey,
+                            ),
+                          ),
+                          if (obd2Service.isConnected && obd2Service.liveData.containsKey('scanner_error')) ...[
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.orange.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                obd2Service.liveData['scanner_error'],
+                                style: FlutterFlowTheme.of(context).bodySmall.copyWith(
+                                  color: Colors.orange,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  ],
+                ),
+                if (obd2Service.isConnected) ...[
+                  const SizedBox(height: 16),
+                  // Disconnect button when connected
+                  ElevatedButton.icon(
+                    onPressed: () => _disconnectFromDevice(),
+                    icon: const Icon(Icons.bluetooth_disabled, size: 18),
+                    label: const Text('Disconnect'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ] else if (!obd2Service.isConnected) ...[
+                  const SizedBox(height: 16),
+                  // Quick connection section
+                  Row(
                     children: [
-                      Text('Scanner Status', style: FlutterFlowTheme.of(context).titleMedium),
-                      Text(
-                        _isConnected ? 'Connected to $_deviceName' : 'Disconnected',
-                        style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
-                          color: _isConnected ? Colors.green : Colors.grey,
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _scanningDevices ? null : () => _scanForDevices(),
+                          icon: _scanningDevices 
+                            ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                            : const Icon(Icons.search, size: 18),
+                          label: Text(_scanningDevices ? 'Scanning...' : 'Scan for Devices'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: FlutterFlowTheme.of(context).primary,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _connectingToDevice || obd2Service.selectedDevice == null ? null : () => _connectToDevice(),
+                          icon: _connectingToDevice 
+                            ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                            : const Icon(Icons.bluetooth_connected, size: 18),
+                          label: Text(_connectingToDevice ? 'Connecting...' : 'Connect'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                ),
-                ElevatedButton(
-                  onPressed: _isConnecting ? null : _toggleConnection,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _isConnected ? Colors.red : FlutterFlowTheme.of(context).primary,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: _isConnecting
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                        )
-                      : Text(_isConnected ? 'Disconnect' : 'Connect'),
-                ),
+                  
+                  // Device selection list
+                  if (obd2Service.availableDevices.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      'Available Devices (${obd2Service.availableDevices.length})',
+                      style: FlutterFlowTheme.of(context).titleSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxHeight: MediaQuery.of(context).size.height * 0.25, // Max 25% of screen height
+                      ),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: obd2Service.availableDevices.map((device) {
+                            final isSelected = obd2Service.selectedDevice?.remoteId == device.remoteId;
+                            return Card(
+                              margin: const EdgeInsets.only(bottom: 4),
+                              color: isSelected 
+                                  ? FlutterFlowTheme.of(context).primary.withValues(alpha: 0.1)
+                                  : null,
+                              child: ListTile(
+                                dense: true,
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                leading: Icon(
+                                  Icons.bluetooth,
+                                  color: isSelected 
+                                      ? FlutterFlowTheme.of(context).primary
+                                      : Colors.grey,
+                                  size: 20,
+                                ),
+                                title: Text(
+                                  device.platformName.isNotEmpty 
+                                      ? device.platformName 
+                                      : 'Unknown Device',
+                                  style: FlutterFlowTheme.of(context).bodySmall.copyWith(
+                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  device.remoteId.toString(),
+                                  style: FlutterFlowTheme.of(context).bodySmall.copyWith(fontSize: 10),
+                                ),
+                                trailing: isSelected
+                                    ? Icon(
+                                        Icons.check_circle,
+                                        color: FlutterFlowTheme.of(context).primary,
+                                        size: 18,
+                                      )
+                                    : null,
+                                onTap: () => obd2Service.selectDevice(device),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                  ] else ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      'Tap "Scan for Devices" to find your OBD2 scanner, then select and connect.',
+                      style: FlutterFlowTheme.of(context).bodySmall.copyWith(
+                        color: Colors.orange,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Permission buttons
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => _checkPermissions(),
+                            icon: const Icon(Icons.security, size: 16),
+                            label: const Text('Check Permissions', style: TextStyle(fontSize: 12)),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => _forceBluetoothPermission(),
+                            icon: const Icon(Icons.bluetooth, size: 16),
+                            label: const Text('Force Bluetooth', style: TextStyle(fontSize: 12)),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => _forceLocationPermission(),
+                            icon: const Icon(Icons.location_on, size: 16),
+                            label: const Text('Force Location', style: TextStyle(fontSize: 12)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
               ],
             ),
-            if (_isConnected && _batteryVoltage > 0) ...[
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  const Icon(Icons.battery_std, color: Colors.orange),
-                  const SizedBox(width: 8),
-                  Text('Battery: ${_batteryVoltage.toStringAsFixed(1)}V'),
-                ],
-              ),
-            ],
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
   Widget _buildLiveDataCarousel() {
-    if (!_isConnected) {
-      return Card(
-        color: FlutterFlowTheme.of(context).secondaryBackground,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Padding(
-          padding: const EdgeInsets.all(40),
-          child: Column(
-            children: [
-              Icon(Icons.car_repair, size: 48, color: FlutterFlowTheme.of(context).secondaryText),
-              const SizedBox(height: 16),
-              Text('Connect to view live data', style: FlutterFlowTheme.of(context).titleMedium),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: Text('Live Data', style: FlutterFlowTheme.of(context).titleMedium),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 140,
-          child: PageView(
-            controller: _liveDataController,
-            children: [
-              _LiveDataCard(
-                icon: Icons.speed,
-                color: Colors.blue,
-                title: 'RPM',
-                value: '${_liveData['rpm'] ?? '--'}',
-                unit: 'rpm',
+    return Consumer<OBD2BluetoothService>(
+      builder: (context, obd2Service, child) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text('Live Data', style: FlutterFlowTheme.of(context).titleMedium),
+            ),
+            const SizedBox(height: 12),
+            if (!obd2Service.isConnected)
+              Card(
+                color: FlutterFlowTheme.of(context).secondaryBackground,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                child: Padding(
+                  padding: const EdgeInsets.all(40),
+                  child: Column(
+                    children: [
+                      Icon(Icons.car_repair, size: 48, color: FlutterFlowTheme.of(context).secondaryText),
+                      const SizedBox(height: 16),
+                      Text('Connect to view live data', style: FlutterFlowTheme.of(context).titleMedium),
+                    ],
+                  ),
+                ),
+              )
+            else if (obd2Service.liveData.containsKey('scanner_error'))
+              Card(
+                color: FlutterFlowTheme.of(context).secondaryBackground,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      Icon(Icons.warning, size: 48, color: Colors.orange),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Scanner Connection Issue',
+                        style: FlutterFlowTheme.of(context).titleMedium.copyWith(color: Colors.orange),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        obd2Service.liveData['scanner_error'],
+                        style: FlutterFlowTheme.of(context).bodyMedium,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Troubleshooting Steps:',
+                        style: FlutterFlowTheme.of(context).bodyMedium.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('• Turn ignition ON or start engine', style: FlutterFlowTheme.of(context).bodySmall),
+                          Text('• Check OBD2 port connection', style: FlutterFlowTheme.of(context).bodySmall),
+                          Text('• Wait 30 seconds after connection', style: FlutterFlowTheme.of(context).bodySmall),
+                          Text('• Try reconnecting scanner', style: FlutterFlowTheme.of(context).bodySmall),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              GridView.count(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisCount: 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 0.85,
+                children: [
+                  _LiveDataRequestCard(
+                    icon: Icons.speed,
+                    color: Colors.blue,
+                    title: 'RPM',
+                    value: '${obd2Service.liveData['rpm'] ?? '--'}',
+                    unit: 'rpm',
+                    dataType: 'rpm',
+                    service: obd2Service,
+                    onRequest: () {
+                      _showSnackBar('Requesting RPM data...', Colors.blue);
+                      obd2Service.requestData('rpm');
+                    },
+                  ),
+                  _LiveDataRequestCard(
+                    icon: Icons.directions_car,
+                    color: Colors.purple,
+                    title: 'Speed',
+                    value: '${obd2Service.liveData['speed'] ?? '--'}',
+                    unit: 'km/h',
+                    dataType: 'speed',
+                    service: obd2Service,
+                    onRequest: () {
+                      _showSnackBar('Requesting speed data...', Colors.purple);
+                      obd2Service.requestData('speed');
+                    },
+                  ),
+                  _LiveDataRequestCard(
+                    icon: Icons.thermostat,
+                    color: Colors.red,
+                    title: 'Engine Temp',
+                    value: '${obd2Service.liveData['engine_temp'] ?? '--'}',
+                    unit: '°C',
+                    dataType: 'engine_temp',
+                    service: obd2Service,
+                    onRequest: () {
+                      _showSnackBar('Requesting engine temperature...', Colors.red);
+                      obd2Service.requestData('engine_temp');
+                    },
+                  ),
+                  _LiveDataRequestCard(
+                    icon: Icons.local_gas_station,
+                    color: Colors.green,
+                    title: 'Fuel Level',
+                    value: '${obd2Service.liveData['fuel_level'] ?? '--'}',
+                    unit: '%',
+                    dataType: 'fuel_level',
+                    service: obd2Service,
+                    onRequest: () {
+                      _showSnackBar('Requesting fuel level...', Colors.green);
+                      obd2Service.requestData('fuel_level');
+                    },
+                  ),
+                  _LiveDataRequestCard(
+                    icon: Icons.linear_scale,
+                    color: Colors.orange,
+                    title: 'Throttle',
+                    value: '${obd2Service.liveData['throttle_position'] ?? '--'}',
+                    unit: '%',
+                    dataType: 'throttle_position',
+                    service: obd2Service,
+                    onRequest: () {
+                      _showSnackBar('Requesting throttle position...', Colors.orange);
+                      obd2Service.requestData('throttle_position');
+                    },
+                  ),
+                  _VINRequestCard(
+                    vin: '${obd2Service.liveData['vin'] ?? 'Not available'}',
+                    service: obd2Service,
+                    onRequest: () {
+                      _showSnackBar('Requesting VIN...', Colors.indigo);
+                      obd2Service.requestData('vin');
+                    },
+                  ),
+                ],
               ),
-              _LiveDataCard(
-                icon: Icons.flash_on,
-                color: Colors.orange,
-                title: 'Speed',
-                value: '${_liveData['speed'] ?? '--'}',
-                unit: 'mph',
-              ),
-              _LiveDataCard(
-                icon: Icons.thermostat,
-                color: Colors.red,
-                title: 'Engine Temp',
-                value: '${_liveData['engine_temp'] ?? '--'}',
-                unit: '°C',
-              ),
-              _LiveDataCard(
-                icon: Icons.local_gas_station,
-                color: Colors.green,
-                title: 'Fuel Level',
-                value: '${_liveData['fuel_level'] ?? '--'}',
-                unit: '%',
-              ),
-            ],
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 
@@ -638,7 +962,7 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
                 Row(
                   children: [
                     TextButton.icon(
-                      onPressed: _codesLoading ? null : _loadTroubleCodes,
+                      onPressed: _codesLoading ? null : _loadRealTroubleCodes,
                       icon: const Icon(Icons.refresh, size: 18),
                       label: const Text('Scan'),
                     ),
@@ -696,7 +1020,7 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
           decoration: BoxDecoration(
             color: FlutterFlowTheme.of(context).primaryBackground,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: color.withOpacity(0.3)),
+            border: Border.all(color: color.withValues(alpha: 0.3)),
           ),
           child: Row(
             children: [
@@ -725,7 +1049,7 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
     );
   }
 
-  Widget _buildVehicleHealthDashboard() {
+  Widget _buildAIAnalysisSection() {
     return Card(
       color: FlutterFlowTheme.of(context).secondaryBackground,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -734,31 +1058,73 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Vehicle Health', style: FlutterFlowTheme.of(context).titleMedium),
+            Row(
+              children: [
+                Icon(Icons.auto_awesome, color: FlutterFlowTheme.of(context).primary, size: 24),
+                const SizedBox(width: 8),
+                Text('AI Vehicle Analysis', style: FlutterFlowTheme.of(context).titleMedium),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: _aiAnalysisLoading ? null : _generateAIAnalysis,
+                  icon: const Icon(Icons.refresh, size: 18),
+                  label: const Text('Analyze'),
+                ),
+              ],
+            ),
             const SizedBox(height: 16),
             
-            if (_healthLoading)
-              const Center(child: CircularProgressIndicator())
-            else if (_healthStatus.isEmpty)
-              Text('Health data unavailable', style: FlutterFlowTheme.of(context).bodyMedium)
+            if (_aiAnalysisLoading)
+              const Center(
+                child: Column(
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 8),
+                    Text('AI is analyzing your vehicle data...'),
+                  ],
+                ),
+              )
+            else if (_aiAnalysis == null)
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: FlutterFlowTheme.of(context).primaryBackground,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
+                ),
+                child: Column(
+                  children: [
+                    Icon(Icons.psychology, size: 48, color: Colors.grey),
+                    const SizedBox(height: 8),
+                    Text('Tap "Analyze" to get AI insights about your vehicle', 
+                         style: FlutterFlowTheme.of(context).bodyMedium),
+                  ],
+                ),
+              )
             else
-              GridView.count(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: 2,
-                childAspectRatio: 2.5,
-                mainAxisSpacing: 8,
-                crossAxisSpacing: 8,
-                children: [
-                  _buildHealthItem('Engine', _healthStatus['engine'] ?? 'unknown'),
-                  _buildHealthItem('Transmission', _healthStatus['transmission'] ?? 'unknown'),
-                  _buildHealthItem('Emissions', _healthStatus['emissions'] ?? 'unknown'),
-                  _buildHealthItem('Fuel System', _healthStatus['fuel_system'] ?? 'unknown'),
-                  _buildHealthItem('Cooling', _healthStatus['cooling_system'] ?? 'unknown'),
-                  _buildHealthItem('Electrical', _healthStatus['electrical_system'] ?? 'unknown'),
-                  _buildHealthItem('Brakes', _healthStatus['brake_system'] ?? 'unknown'),
-                  _buildHealthItem('Exhaust', _healthStatus['exhaust_system'] ?? 'unknown'),
-                ],
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: FlutterFlowTheme.of(context).primaryBackground,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: FlutterFlowTheme.of(context).primary.withValues(alpha: 0.3)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.lightbulb, color: FlutterFlowTheme.of(context).primary, size: 20),
+                        const SizedBox(width: 8),
+                        Text('AI Insights', style: FlutterFlowTheme.of(context).titleSmall),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _aiAnalysis!,
+                      style: FlutterFlowTheme.of(context).bodyMedium,
+                    ),
+                  ],
+                ),
               ),
           ],
         ),
@@ -766,104 +1132,99 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
     );
   }
 
-  Widget _buildHealthItem(String title, String status) {
-    Color statusColor;
-    IconData statusIcon;
-    
-    switch (status.toLowerCase()) {
-      case 'good':
-      case 'ok':
-        statusColor = Colors.green;
-        statusIcon = Icons.check_circle;
-        break;
-      case 'warning':
-        statusColor = Colors.orange;
-        statusIcon = Icons.warning;
-        break;
-      case 'error':
-      case 'critical':
-        statusColor = Colors.red;
-        statusIcon = Icons.error;
-        break;
-      default:
-        statusColor = Colors.grey;
-        statusIcon = Icons.help;
-    }
 
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: FlutterFlowTheme.of(context).primaryBackground,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: statusColor.withOpacity(0.3)),
-      ),
-      child: Row(
-        children: [
-          Icon(statusIcon, color: statusColor, size: 20),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(title, style: FlutterFlowTheme.of(context).bodySmall),
-                Text(status.toUpperCase(), 
-                     style: FlutterFlowTheme.of(context).bodySmall.copyWith(
-                       color: statusColor,
-                       fontWeight: FontWeight.bold,
-                     )),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+}
 
-  Widget _buildQuickActionsGrid() {
+class _LiveDataRequestCard extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String title;
+  final String value;
+  final String unit;
+  final String dataType;
+  final OBD2BluetoothService service;
+  final VoidCallback onRequest;
+
+  const _LiveDataRequestCard({
+    required this.icon,
+    required this.color,
+    required this.title,
+    required this.value,
+    required this.unit,
+    required this.dataType,
+    required this.service,
+    required this.onRequest,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Card(
       color: FlutterFlowTheme.of(context).secondaryBackground,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 2,
+      child: Container(
+        padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Quick Actions', style: FlutterFlowTheme.of(context).titleMedium),
-            const SizedBox(height: 16),
-            GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              childAspectRatio: 1.5,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
+            // Top section with icon and title
+            Column(
               children: [
-                _QuickActionButton(
-                  icon: Icons.search,
-                  title: 'Full Scan',
-                  color: Colors.blue,
-                  onTap: _loadTroubleCodes,
-                ),
-                _QuickActionButton(
-                  icon: Icons.timeline,
-                  title: 'Live Data',
-                  color: Colors.green,
-                  onTap: _isConnected ? _loadLiveData : null,
-                ),
-                _QuickActionButton(
-                  icon: Icons.clear,
-                  title: 'Clear Codes',
-                  color: Colors.red,
-                  onTap: (_activeCodes.isNotEmpty || _pendingCodes.isNotEmpty) ? _clearTroubleCodes : null,
-                ),
-                _QuickActionButton(
-                  icon: Icons.download,
-                  title: 'Export Report',
-                  color: Colors.orange,
-                  onTap: _exportReport,
+                Icon(icon, color: color, size: 28),
+                const SizedBox(height: 8),
+                Text(
+                  title, 
+                  style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ],
+            ),
+            
+            // Middle section with value
+            Column(
+              children: [
+                Text(
+                  value,
+                  style: FlutterFlowTheme.of(context).headlineSmall.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+                Text(
+                  unit, 
+                  style: FlutterFlowTheme.of(context).bodySmall.copyWith(
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+            
+            // Bottom section with request button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: service.isConnected ? onRequest : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: color,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  'Request',
+                  style: FlutterFlowTheme.of(context).bodySmall.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -872,86 +1233,79 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
   }
 }
 
-class _LiveDataCard extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final String title;
-  final String value;
-  final String unit;
+class _VINRequestCard extends StatelessWidget {
+  final String vin;
+  final OBD2BluetoothService service;
+  final VoidCallback onRequest;
 
-  const _LiveDataCard({
-    required this.icon,
-    required this.color,
-    required this.title,
-    required this.value,
-    required this.unit,
+  const _VINRequestCard({
+    required this.vin,
+    required this.service,
+    required this.onRequest,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Card(
-        color: FlutterFlowTheme.of(context).secondaryBackground,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        elevation: 2,
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: color, size: 32),
-              const SizedBox(height: 8),
-              Text(title, style: FlutterFlowTheme.of(context).bodySmall),
-              const SizedBox(height: 4),
-              Text(value, style: FlutterFlowTheme.of(context).titleLarge.copyWith(color: color)),
-              Text(unit, style: FlutterFlowTheme.of(context).bodySmall),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _QuickActionButton extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final Color color;
-  final VoidCallback? onTap;
-
-  const _QuickActionButton({
-    required this.icon,
-    required this.title,
-    required this.color,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
+    return Card(
+      color: FlutterFlowTheme.of(context).secondaryBackground,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 2,
       child: Container(
-        decoration: BoxDecoration(
-          color: FlutterFlowTheme.of(context).primaryBackground,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: onTap != null ? color.withOpacity(0.3) : Colors.grey.withOpacity(0.3),
-          ),
-        ),
+        padding: const EdgeInsets.all(16),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Icon(
-              icon,
-              color: onTap != null ? color : Colors.grey,
-              size: 32,
+            // Top section with icon and title
+            Column(
+              children: [
+                Icon(Icons.confirmation_number, color: Colors.indigo, size: 28),
+                const SizedBox(height: 8),
+                Text(
+                  'VIN', 
+                  style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
-                color: onTap != null ? null : Colors.grey,
+            
+            // Middle section with VIN value
+            Expanded(
+              child: Center(
+                child: Text(
+                  vin,
+                  style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
+                    color: Colors.indigo,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+            
+            // Bottom section with request button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: service.isConnected ? onRequest : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.indigo,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  'Request',
+                  style: FlutterFlowTheme.of(context).bodySmall.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ),
           ],
