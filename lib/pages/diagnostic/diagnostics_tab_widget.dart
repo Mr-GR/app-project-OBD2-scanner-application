@@ -331,15 +331,29 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
     
     try {
       final fuelPercent = int.parse(fuelLevel.toString());
-      // Estimate based on average car: 50L tank, 8L/100km fuel efficiency
-      // Range = (tank_size * fuel_percent / 100) / (consumption_per_100km / 100)
-      const double tankSize = 50.0; // liters
-      const double fuelConsumption = 8.0; // L/100km
+      // Estimate based on average car: 13.2 gallon tank, 25 MPG fuel efficiency (US values)
+      // Range = (tank_size * fuel_percent / 100) * mpg
+      const double tankSize = 13.2; // gallons (US average)
+      const double fuelEfficiency = 25.0; // MPG (US average)
       
       final double remainingFuel = tankSize * (fuelPercent / 100.0);
-      final double estimatedRange = (remainingFuel / fuelConsumption) * 100.0;
+      final double estimatedRange = remainingFuel * fuelEfficiency;
       
       return estimatedRange.round().toString();
+    } catch (e) {
+      return '--';
+    }
+  }
+
+  String _convertSpeedToMph(dynamic speedKmh) {
+    if (speedKmh == null) return '--';
+    
+    try {
+      final speedInKmh = double.parse(speedKmh.toString());
+      // Convert km/h to mph: multiply by 0.621371
+      final speedInMph = speedInKmh * 0.621371;
+      
+      return speedInMph.round().toString();
     } catch (e) {
       return '--';
     }
@@ -882,8 +896,8 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
                     icon: Icons.directions_car,
                     color: Colors.purple,
                     title: 'Speed',
-                    value: '${obd2Service.liveData['speed'] ?? '--'}',
-                    unit: 'km/h',
+                    value: '${_convertSpeedToMph(obd2Service.liveData['speed'])}',
+                    unit: 'mph',
                     dataType: 'speed',
                     service: obd2Service,
                     onRequest: () {
@@ -907,9 +921,9 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
                   _LiveDataRequestCard(
                     icon: Icons.local_gas_station,
                     color: Colors.green,
-                    title: 'Fuel Level',
-                    value: '${obd2Service.liveData['fuel_level'] ?? '--'}',
-                    unit: '%',
+                    title: 'Fuel Range',
+                    value: '${_calculateFuelRange(obd2Service.liveData['fuel_level'])}',
+                    unit: 'miles',
                     dataType: 'fuel_level',
                     service: obd2Service,
                     onRequest: () {
