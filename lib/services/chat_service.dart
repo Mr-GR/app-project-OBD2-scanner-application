@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../config.dart';
 
 class ChatService {
-  static const String _baseUrl = 'http://${Config.baseUrl}/api';
+  static const String _baseUrl = '${Config.baseUrl}/api';
 
   static Future<ChatResponse> askQuestion({
     required String question,

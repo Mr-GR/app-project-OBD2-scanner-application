@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../config.dart';
 
 class VehicleService {
-  static const String _baseUrl = 'http://${Config.baseUrl}/api';
+  static const String _baseUrl = '${Config.baseUrl}/api';
 
   // Add vehicle by VIN (using new backend endpoint)
   static Future<VehicleResponse> addVehicle({

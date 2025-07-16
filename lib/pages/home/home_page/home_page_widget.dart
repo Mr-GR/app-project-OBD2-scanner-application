@@ -175,7 +175,7 @@ class _HomePageWidgetState extends State<HomePageWidget> {
       };
 
       final response = await http.post(
-        Uri.parse('http://${Config.baseUrl}/api/chat/quick'),
+        Uri.parse('${Config.baseUrl}/api/chat/quick'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(requestBody),
       );
