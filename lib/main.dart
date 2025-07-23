@@ -12,6 +12,7 @@ import 'pages/chat/ai_chat_widget.dart';
 import 'pages/chat/chat_test_widget.dart';
 import 'pages/main_tab_navigator.dart';
 import 'pages/settings/connection_settings_widget.dart';
+import 'pages/settings/settings/settings_widget.dart';
 import 'pages/profile/profile_settings_screen.dart';
 import 'pages/profile/subscription_details_screen.dart';
 import 'pages/diagnostic/scan_results_screen.dart';
@@ -146,6 +147,10 @@ GoRouter createRouter() {
       GoRoute(
         path: '/home',
         builder: (context, state) => const MainTabNavigator(),
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsWidget(),
       ),
       GoRoute(
         path: '/connection-settings',

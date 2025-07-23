@@ -26,6 +26,27 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
     super.dispose();
   }
 
+  void _showThemedSnackBar(String message, Color color) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            message,
+            style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: color,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
@@ -109,7 +130,7 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
                     TextButton(
                       onPressed: () => _checkPermissions(service),
                       child: Text(
-                        'Check Permissions',
+                        'Check Permission',
                         style: TextStyle(
                           color: FlutterFlowTheme.of(context).primary,
                           fontSize: 14,
@@ -121,7 +142,7 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
                     TextButton(
                       onPressed: () => _forceBluetoothPermission(service),
                       child: Text(
-                        'Force Bluetooth Permission',
+                        'Force Bluetooth',
                         style: TextStyle(
                           color: Colors.blue,
                           fontSize: 14,
@@ -133,7 +154,7 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
                     TextButton(
                       onPressed: () => _forceLocationPermission(service),
                       child: Text(
-                        'Force Location Permission',
+                        'Force Location',
                         style: TextStyle(
                           color: Colors.orange,
                           fontSize: 14,
@@ -407,12 +428,7 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
     final granted = await service.requestPermissionsAgain();
     if (mounted) {
       if (granted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✅ All permissions granted! You can now scan for devices.'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        _showThemedSnackBar('✅ All permissions granted! You can now scan for devices.', Colors.green);
       } else {
         _showPermissionDialog(service);
       }
@@ -423,19 +439,9 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
     final success = await service.forceBluetoothPermissionRequest();
     if (mounted) {
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('🔵 Bluetooth permission requested! Check device settings if dialog appeared.'),
-            backgroundColor: Colors.blue,
-          ),
-        );
+        _showThemedSnackBar('🔵 Bluetooth permission requested! Check device settings if dialog appeared.', Colors.blue);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('❌ Failed to request Bluetooth permission.'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        _showThemedSnackBar('❌ Failed to request Bluetooth permission.', Colors.red);
       }
     }
   }
@@ -444,19 +450,9 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
     final success = await service.forceLocationPermissionRequest();
     if (mounted) {
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('📍 Location permission granted! You can now scan for devices.'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        _showThemedSnackBar('📍 Location permission granted! You can now scan for devices.', Colors.green);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('❌ Location permission denied. Please enable in Settings > Privacy > Location Services.'),
-            backgroundColor: Colors.orange,
-          ),
-        );
+        _showThemedSnackBar('❌ Location permission denied. Please enable in Settings > Privacy > Location Services.', Colors.orange);
       }
     }
   }
@@ -520,12 +516,7 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
       if (service.connectionStatus.contains('Permissions not granted')) {
         _showPermissionDialog(service);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Scan failed: ${service.connectionStatus}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        _showThemedSnackBar('Scan failed: ${service.connectionStatus}', Colors.red);
       }
     }
   }
@@ -536,12 +527,7 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
       if (service.connectionStatus.contains('Permissions not granted')) {
         _showPermissionDialog(service);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to connect: ${service.connectionStatus}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        _showThemedSnackBar('Failed to connect: ${service.connectionStatus}', Colors.red);
       }
     }
   }
@@ -630,12 +616,7 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
               Navigator.of(context).pop();
               final granted = await service.requestPermissionsAgain();
               if (granted && mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Permissions granted! You can now scan for devices.'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
+                _showThemedSnackBar('Permissions granted! You can now scan for devices.', Colors.green);
               }
             },
             child: const Text('Try Again'),
@@ -652,12 +633,7 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
               Navigator.of(context).pop();
               service.openSettings();
               if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Please enable Bluetooth and Location permissions, then return to the app.'),
-                    duration: Duration(seconds: 4),
-                  ),
-                );
+                _showThemedSnackBar('Please enable Bluetooth and Location permissions, then return to the app.', FlutterFlowTheme.of(context).primary);
               }
             },
             child: const Text('Open Settings'),
@@ -670,12 +646,7 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
   Future<void> _disconnect(OBD2BluetoothService service) async {
     await service.disconnectFromOBD2();
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Disconnected from OBD2 device'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      _showThemedSnackBar('Disconnected from OBD2 device', Colors.orange);
     }
   }
 }

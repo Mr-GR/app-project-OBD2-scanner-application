@@ -99,8 +99,18 @@ class _AddVehicleWidgetState extends State<AddVehicleWidget> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(message),
+          content: Text(
+            message,
+            style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
+              color: Colors.white,
+            ),
+          ),
           backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          margin: const EdgeInsets.all(16),
         ),
       );
     }
@@ -110,8 +120,18 @@ class _AddVehicleWidgetState extends State<AddVehicleWidget> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(message),
+          content: Text(
+            message,
+            style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
+              color: Colors.white,
+            ),
+          ),
           backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          margin: const EdgeInsets.all(16),
         ),
       );
     }
@@ -199,12 +219,7 @@ class _AddVehicleWidgetState extends State<AddVehicleWidget> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error looking up vehicle: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        _showErrorSnackBar('Error looking up vehicle: $e');
       }
     } finally {
       if (mounted) {
@@ -229,24 +244,14 @@ class _AddVehicleWidgetState extends State<AddVehicleWidget> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Vehicle added successfully: ${savedVehicle.make} ${savedVehicle.model}'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        _showSuccessSnackBar('Vehicle added successfully: ${savedVehicle.make} ${savedVehicle.model}');
 
         // Return success to trigger refresh
         Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error adding vehicle: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        _showErrorSnackBar('Error adding vehicle: $e');
       }
     } finally {
       if (mounted) {

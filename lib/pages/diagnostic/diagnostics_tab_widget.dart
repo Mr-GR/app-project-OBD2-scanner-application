@@ -535,8 +535,19 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(message),
+          content: Text(
+            message,
+            style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
+              color: Colors.white,
+            ),
+          ),
           backgroundColor: color,
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          margin: const EdgeInsets.all(16),
         ),
       );
     }
@@ -773,24 +784,24 @@ class _DiagnosticsTabWidgetState extends State<DiagnosticsTabWidget> {
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: () => _checkPermissions(),
-                            icon: const Icon(Icons.security, size: 16),
-                            label: const Text('Check Permissions', style: TextStyle(fontSize: 12)),
+                            icon: const Icon(Icons.security, size: 12),
+                            label: const Text('Permission', style: TextStyle(fontSize: 11)),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: () => _forceBluetoothPermission(),
-                            icon: const Icon(Icons.bluetooth, size: 16),
-                            label: const Text('Force Bluetooth', style: TextStyle(fontSize: 12)),
+                            icon: const Icon(Icons.bluetooth, size: 12),
+                            label: const Text('Bluetooth', style: TextStyle(fontSize: 11)),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: () => _forceLocationPermission(),
-                            icon: const Icon(Icons.location_on, size: 16),
-                            label: const Text('Force Location', style: TextStyle(fontSize: 12)),
+                            icon: const Icon(Icons.location_on, size: 12),
+                            label: const Text('Location', style: TextStyle(fontSize: 11)),
                           ),
                         ),
                       ],
