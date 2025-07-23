@@ -51,8 +51,18 @@ class _HomePageWidgetState extends State<HomePageWidget> {
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error loading vehicles: $e'),
+            content: Text(
+              'Error loading vehicles: $e',
+              style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
+                color: Colors.white,
+              ),
+            ),
             backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            margin: const EdgeInsets.all(16),
           ),
         );
       }
@@ -93,9 +103,19 @@ class _HomePageWidgetState extends State<HomePageWidget> {
         await VehicleService.deleteVehicle(vehicle.id);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Vehicle deleted successfully'),
+            SnackBar(
+              content: Text(
+                'Vehicle deleted successfully',
+                style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
+                  color: Colors.white,
+                ),
+              ),
               backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              margin: const EdgeInsets.all(16),
             ),
           );
           _loadVehicles(); // Refresh list
@@ -104,8 +124,18 @@ class _HomePageWidgetState extends State<HomePageWidget> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error deleting vehicle: $e'),
+              content: Text(
+                'Error deleting vehicle: $e',
+                style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
+                  color: Colors.white,
+                ),
+              ),
               backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              margin: const EdgeInsets.all(16),
             ),
           );
         }
@@ -119,8 +149,18 @@ class _HomePageWidgetState extends State<HomePageWidget> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${vehicle.make} ${vehicle.model} set as primary vehicle'),
+            content: Text(
+              '${vehicle.make} ${vehicle.model} set as primary vehicle',
+              style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
+                color: Colors.white,
+              ),
+            ),
             backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            margin: const EdgeInsets.all(16),
           ),
         );
         _loadVehicles(); // Refresh list
@@ -129,8 +169,18 @@ class _HomePageWidgetState extends State<HomePageWidget> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error setting primary vehicle: $e'),
+            content: Text(
+              'Error setting primary vehicle: $e',
+              style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
+                color: Colors.white,
+              ),
+            ),
             backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            margin: const EdgeInsets.all(16),
           ),
         );
       }
@@ -219,8 +269,18 @@ class _HomePageWidgetState extends State<HomePageWidget> {
         if (_chatExchangeCount >= 2) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('For longer conversations, tap "AI Chat" to continue'),
+              content: Text(
+                'For longer conversations, tap "AI Chat" to continue',
+                style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
+                  color: Colors.white,
+                ),
+              ),
               backgroundColor: FlutterFlowTheme.of(context).primary,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              margin: const EdgeInsets.all(16),
               action: SnackBarAction(
                 label: 'Open Chat',
                 textColor: Colors.white,
@@ -408,12 +468,17 @@ class _HomePageWidgetState extends State<HomePageWidget> {
       appBar: AppBar(
         backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
         elevation: 0,
-        title: const Text('Home', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(
+          'Home', 
+          style: FlutterFlowTheme.of(context).titleLarge.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadVehicles,
+            icon: const Icon(Icons.settings),
+            onPressed: () => GoRouter.of(context).push('/settings'),
           ),
         ],
       ),
