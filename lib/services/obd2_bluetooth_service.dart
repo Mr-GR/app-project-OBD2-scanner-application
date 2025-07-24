@@ -2618,6 +2618,85 @@ class OBD2BluetoothService extends ChangeNotifier {
       debugPrint('❌ Backend connection update error: $e');
     }
   }
+
+  /// Get available vehicles from backend
+  Future<List<Map<String, dynamic>>> getAvailableVehicles() async {
+    try {
+      debugPrint('🔄 Fetching available vehicles from backend...');
+      
+      final response = await http.get(
+        Uri.parse('${Config.baseUrl}/api/scanner/vehicles'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final vehicles = List<Map<String, dynamic>>.from(data['vehicles'] ?? []);
+        debugPrint('✅ Found ${vehicles.length} vehicles');
+        return vehicles;
+      } else {
+        debugPrint('❌ Failed to get vehicles: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      debugPrint('❌ Vehicle fetch error: $e');
+      return [];
+    }
+  }
+
+  /// Upload full diagnostic scan results to backend
+  Future<bool> uploadFullScanResults({
+    required int vehicleId,
+    required String scanType,
+    required String vehicleInfo,
+    required List<Map<String, dynamic>> troubleCodes,
+    required Map<String, dynamic> liveParameters,
+    required Map<String, dynamic> readinessMonitors,
+    List<Map<String, dynamic>>? pendingCodes,
+    List<Map<String, dynamic>>? permanentCodes,
+    Map<String, dynamic>? freezeFrameData,
+  }) async {
+    try {
+      debugPrint('🔄 Uploading full scan results to backend...');
+      
+      final response = await http.post(
+        Uri.parse('${Config.baseUrl}/api/scanner/upload-scan'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'vehicle_id': vehicleId,
+          'scan_type': scanType,
+          'vehicle_info': vehicleInfo,
+          'trouble_codes': troubleCodes,
+          'pending_codes': pendingCodes ?? [],
+          'permanent_codes': permanentCodes ?? [],
+          'live_parameters': liveParameters,
+          'readiness_monitors': readinessMonitors,
+          'freeze_frame_data': freezeFrameData ?? {},
+          'started_at': DateTime.now().toIso8601String(),
+          'completed_at': DateTime.now().toIso8601String(),
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        debugPrint('✅ Full scan uploaded successfully: scan_id ${data['scan_id']}');
+        
+        // Check if backend substituted a different vehicle ID
+        if (data['vehicle_id_used'] != null && data['vehicle_id_used'] != vehicleId) {
+          debugPrint('ℹ️ Backend used vehicle ID ${data['vehicle_id_used']} instead of $vehicleId');
+        }
+        
+        return true;
+      } else {
+        debugPrint('❌ Backend scan upload failed: ${response.statusCode}');
+        debugPrint('Response: ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      debugPrint('❌ Full scan upload error: $e');
+      return false;
+    }
+  }
   
   /// Update connection status
   void _updateStatus(String status) {

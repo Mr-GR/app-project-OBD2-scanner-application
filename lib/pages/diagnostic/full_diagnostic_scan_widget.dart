@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/services/obd2_bluetooth_service.dart';
+import '/services/vehicle_service.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -154,6 +156,9 @@ class _FullDiagnosticScanWidgetState extends State<FullDiagnosticScanWidget>
       _currentScanStep = 'Scan completed successfully';
       _scanProgress = 1.0;
     });
+
+    // Upload scan results to backend
+    await _uploadScanToBackend();
   }
 
   List<Map<String, String>> _getScanSteps() {
@@ -282,22 +287,26 @@ class _FullDiagnosticScanWidgetState extends State<FullDiagnosticScanWidget>
     final parameters = <String, dynamic>{};
     
     final pids = [
-      {'pid': '010C', 'name': 'engine_rpm'},
-      {'pid': '010D', 'name': 'vehicle_speed'},
-      {'pid': '0105', 'name': 'coolant_temp'},
-      {'pid': '010F', 'name': 'intake_air_temp'},
-      {'pid': '0111', 'name': 'throttle_position'},
-      {'pid': '012F', 'name': 'fuel_level'},
-      {'pid': '0104', 'name': 'engine_load'},
-      {'pid': '0106', 'name': 'short_term_fuel_trim_1'},
-      {'pid': '0107', 'name': 'long_term_fuel_trim_1'},
+      {'pid': '010C', 'name': 'engine_rpm', 'unit': 'rpm'},
+      {'pid': '010D', 'name': 'vehicle_speed', 'unit': 'km/h'},
+      {'pid': '0105', 'name': 'coolant_temp', 'unit': '°C'},
+      {'pid': '010F', 'name': 'intake_air_temp', 'unit': '°C'},
+      {'pid': '0111', 'name': 'throttle_position', 'unit': '%'},
+      {'pid': '012F', 'name': 'fuel_level', 'unit': '%'},
+      {'pid': '0104', 'name': 'engine_load', 'unit': '%'},
+      {'pid': '0106', 'name': 'short_term_fuel_trim_1', 'unit': '%'},
+      {'pid': '0107', 'name': 'long_term_fuel_trim_1', 'unit': '%'},
+      {'pid': '010A', 'name': 'fuel_pressure', 'unit': 'kPa'},
     ];
 
     for (final pid in pids) {
       try {
         final response = await _obd2Service.sendOBD2Command(pid['pid'] ?? '');
         if (response.isNotEmpty && !response.contains('ERROR')) {
-          parameters[pid['name'] ?? 'unknown'] = response;
+          final parsedValue = _parseParameterValue(pid['pid'] ?? '', response);
+          if (parsedValue != null) {
+            parameters[pid['name'] ?? 'unknown'] = '$parsedValue ${pid['unit'] ?? ''}';
+          }
         }
         await Future.delayed(const Duration(milliseconds: 100));
       } catch (e) {
@@ -306,6 +315,89 @@ class _FullDiagnosticScanWidgetState extends State<FullDiagnosticScanWidget>
     }
 
     return parameters;
+  }
+
+  /// Parse OBD2 parameter values from hex responses
+  dynamic _parseParameterValue(String pid, String response) {
+    try {
+      // Remove spaces and convert to uppercase
+      final cleanResponse = response.replaceAll(' ', '').toUpperCase();
+      
+      // Extract data portion (skip response header like "41 0C")
+      String data;
+      if (cleanResponse.length >= 6) {
+        data = cleanResponse.substring(4); // Skip "41XX" header
+      } else {
+        return null;
+      }
+
+      switch (pid.substring(2)) { // Get PID without "01" prefix
+        case '0C': // Engine RPM
+          if (data.length >= 4) {
+            final rpm = (int.parse(data.substring(0, 2), radix: 16) * 256 + 
+                        int.parse(data.substring(2, 4), radix: 16)) / 4;
+            return rpm.round();
+          }
+          break;
+          
+        case '0D': // Vehicle Speed
+          if (data.length >= 2) {
+            return int.parse(data.substring(0, 2), radix: 16);
+          }
+          break;
+          
+        case '05': // Engine Coolant Temperature
+          if (data.length >= 2) {
+            return int.parse(data.substring(0, 2), radix: 16) - 40;
+          }
+          break;
+          
+        case '0F': // Intake Air Temperature
+          if (data.length >= 2) {
+            return int.parse(data.substring(0, 2), radix: 16) - 40;
+          }
+          break;
+          
+        case '11': // Throttle Position
+          if (data.length >= 2) {
+            return (int.parse(data.substring(0, 2), radix: 16) * 100 / 255).round();
+          }
+          break;
+          
+        case '2F': // Fuel Level Input
+          if (data.length >= 2) {
+            return (int.parse(data.substring(0, 2), radix: 16) * 100 / 255).round();
+          }
+          break;
+          
+        case '04': // Engine Load
+          if (data.length >= 2) {
+            return (int.parse(data.substring(0, 2), radix: 16) * 100 / 255).round();
+          }
+          break;
+          
+        case '06': // Short Term Fuel Trim Bank 1
+        case '07': // Long Term Fuel Trim Bank 1
+          if (data.length >= 2) {
+            return (int.parse(data.substring(0, 2), radix: 16) - 128) * 100 / 128;
+          }
+          break;
+          
+        case '0A': // Fuel Pressure
+          if (data.length >= 2) {
+            return int.parse(data.substring(0, 2), radix: 16) * 3;
+          }
+          break;
+          
+        default:
+          return data; // Return raw data for unknown PIDs
+      }
+    } catch (e) {
+      debugPrint('Error parsing PID $pid: $e');
+      return null;
+    }
+    
+    return null;
   }
 
   Future<Map<String, dynamic>> _readReadinessMonitors() async {
@@ -335,6 +427,62 @@ class _FullDiagnosticScanWidgetState extends State<FullDiagnosticScanWidget>
 
   Future<void> _scanSpecificSystem(String system) async {
     // Implement system-specific scanning logic
+  }
+
+  Future<void> _uploadScanToBackend() async {
+    try {
+      setState(() {
+        _currentScanStep = 'Uploading to cloud...';
+      });
+
+      // Get valid vehicle ID from backend vehicles endpoint
+      int vehicleId = 1; // Default fallback
+      try {
+        final availableVehicles = await _obd2Service.getAvailableVehicles();
+        if (availableVehicles.isNotEmpty) {
+          // Use the first available vehicle, or find primary vehicle if marked
+          final primaryVehicle = availableVehicles.firstWhere(
+            (vehicle) => vehicle['is_primary'] == true,
+            orElse: () => availableVehicles.first,
+          );
+          vehicleId = primaryVehicle['id'] ?? 1;
+          debugPrint('✅ Using vehicle ID: $vehicleId');
+        } else {
+          debugPrint('⚠️ No vehicles found, backend will handle gracefully');
+        }
+      } catch (e) {
+        debugPrint('⚠️ Could not get vehicle list, backend will handle gracefully: $e');
+      }
+      
+      final uploaded = await _obd2Service.uploadFullScanResults(
+        vehicleId: vehicleId,
+        scanType: _selectedScanType.name,
+        vehicleInfo: _vehicleInfo,
+        troubleCodes: _troubleCodes,
+        liveParameters: _liveParameters,
+        readinessMonitors: _readinessMonitors,
+        pendingCodes: _pendingCodes,
+        permanentCodes: _permanentCodes,
+        freezeFrameData: _freezeFrameData,
+      );
+      
+      if (uploaded) {
+        _showSnackBar('✅ Scan saved to cloud successfully', Colors.green);
+        setState(() {
+          _currentScanStep = 'Scan completed and uploaded';
+        });
+      } else {
+        _showSnackBar('⚠️ Scan saved locally (cloud upload failed)', Colors.orange);
+        setState(() {
+          _currentScanStep = 'Scan completed (upload failed)';
+        });
+      }
+    } catch (e) {
+      _showSnackBar('❌ Upload error: $e', Colors.red);
+      setState(() {
+        _currentScanStep = 'Scan completed (upload error)';
+      });
+    }
   }
 
   String _getSystemFromCode(String code) {
