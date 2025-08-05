@@ -65,6 +65,7 @@ dependencies:
   shared_preferences: ^2.3.2
   path_provider: ^2.1.5
   sqflite: ^2.4.2
+  flutter_secure_storage: ^9.2.2
 
   # PDF generation
   pdf: ^3.10.7
@@ -78,9 +79,10 @@ dependencies:
   flutter_blue_plus: ^1.14.0
   device_info_plus: ^9.1.0
 
-  # URL handling
+  # URL handling and deep links
   url_launcher: ^6.3.1
   webview_flutter: ^4.4.4
+  app_links: ^6.3.2
 
   # Authentication (for future Firebase integration)
   google_sign_in: ^6.3.0
