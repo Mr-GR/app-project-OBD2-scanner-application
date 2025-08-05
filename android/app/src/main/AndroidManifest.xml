@@ -68,6 +68,24 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="obd2scannerfrontend" android:host="obd2scannerfrontend.com" />
             </intent-filter>
+            <!-- Magic link auth callback - Development (your local IP) -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http"
+                      android:host="192.168.1.48"
+                      android:port="3000"
+                      android:pathPrefix="/auth/callback" />
+            </intent-filter>
+            <!-- Magic link auth callback - Custom scheme (preferred) -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="obd2scanner"
+                      android:host="auth" />
+            </intent-filter>
 
         </activity>
 

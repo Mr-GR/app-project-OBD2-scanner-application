@@ -4,6 +4,8 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:go_router/go_router.dart';
 
 import '/flutter_flow/flutter_flow_theme.dart';
+import '/services/deep_link_service.dart';
+import '/auth/auth_util.dart';
 import 'pages/onboarding_flow/auth_welcome/auth_welcome_screen_widget.dart';
 import 'pages/onboarding_flow/auth_login/auth_login_widget.dart';
 import 'pages/onboarding_flow/auth_create/auth_create_widget.dart';
@@ -42,6 +44,9 @@ void main() async {
   usePathUrlStrategy();
 
   await FlutterFlowTheme.initialize();
+  
+  // Initialize authentication state
+  await AuthUtil.authManager.initializeAuth();
 
   runApp(MyApp());
 }
@@ -64,6 +69,8 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     AppStateNotifier.instance.stopShowingSplashImage();
     _router = createRouter();
+    // Pass router to DeepLinkService for navigation
+    DeepLinkService.setRouter(_router);
   }
 
   void setThemeMode(ThemeMode mode) => setState(() {
@@ -95,11 +102,13 @@ class _MyAppState extends State<MyApp> {
       themeMode: _themeMode,
       routerConfig: _router,
       builder: (context, child) {
-        return AccessibilityAwareWidget(
-          respectReducedMotion: true,
-          respectHighContrast: true,
-          respectTextScaling: true,
-          child: child!,
+        return DeepLinkHandler(
+          child: AccessibilityAwareWidget(
+            respectReducedMotion: true,
+            respectHighContrast: true,
+            respectTextScaling: true,
+            child: child!,
+          ),
         );
       },
     );
@@ -109,6 +118,45 @@ class _MyAppState extends State<MyApp> {
 GoRouter createRouter() {
   return GoRouter(
     initialLocation: '/onboarding',
+    redirect: (context, state) async {
+      print('🚦 Router redirect check: ${state.fullPath}');
+      
+      // Check if user is already authenticated
+      final isAuthenticated = await AuthUtil.isAuthenticated();
+      print('🔐 Authentication status: $isAuthenticated');
+      
+      // If user is authenticated and trying to access onboarding/auth pages, redirect to home
+      if (isAuthenticated && (
+          state.fullPath == '/onboarding' ||
+          state.fullPath == '/authWelcomeScreen' ||
+          state.fullPath == '/authLogin' ||
+          state.fullPath == '/authCreate' ||
+          state.fullPath == '/authForgotPassword'
+        )) {
+        print('✅ Authenticated user accessing auth page, redirecting to /home');
+        return '/home';
+      }
+      
+      // If user is not authenticated and trying to access protected pages, redirect to onboarding
+      if (!isAuthenticated && (
+          state.fullPath == '/home' ||
+          state.fullPath == '/settings' ||
+          state.fullPath == '/profile-settings' ||
+          state.fullPath == '/subscription-details' ||
+          state.fullPath == '/scan-results' ||
+          state.fullPath == '/add-vehicle' ||
+          state.fullPath == '/obd2-connection' ||
+          state.fullPath == '/chat' ||
+          state.fullPath == '/connection-settings'
+        )) {
+        print('❌ Unauthenticated user accessing protected page, redirecting to /onboarding');
+        return '/onboarding';
+      }
+      
+      // No redirect needed
+      print('➡️ No redirect needed for ${state.fullPath}');
+      return null;
+    },
     routes: [
       // Onboarding routes
       GoRoute(

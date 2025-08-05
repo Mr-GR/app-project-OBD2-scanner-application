@@ -55,7 +55,7 @@ class _AuthWelcomeScreenWidgetState extends State<AuthWelcomeScreenWidget> {
       barrierDismissible: false,
       builder: (context) => TermsModalWidget(
         onAccept: () {
-          GoRouter.of(context).go('/home');
+          GoRouter.of(context).go('/authLogin');
         },
         onDecline: () {
           // Stay on onboarding, user can try again

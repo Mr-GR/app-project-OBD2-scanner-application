@@ -32,6 +32,16 @@
 				<string>obd2scannerfrontend</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>Magic Link Authentication</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>obd2scanner</string>
+			</array>
+		</dict>
 	</array>
 	<key>FlutterDeepLinkingEnabled</key>
 	<true/>
