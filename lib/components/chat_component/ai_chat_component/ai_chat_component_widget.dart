@@ -132,7 +132,7 @@ class _AiChatComponentWidgetState extends State<AiChatComponentWidget> {
   }
 
   Widget _buildMessageBubble(ChatMessage message) {
-    final isUser = message.type == MessageType.user;
+    final isUser = message.messageType == MessageType.user;
     
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),

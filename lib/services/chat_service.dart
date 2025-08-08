@@ -7,7 +7,6 @@ class ChatService {
 
   static Future<ChatResponse> askQuestion({
     required String question,
-    required String level,
   }) async {
     try {
       final response = await http.post(
@@ -17,7 +16,6 @@ class ChatService {
         },
         body: jsonEncode({
           'question': question,
-          'level': level,
         }),
       );
 

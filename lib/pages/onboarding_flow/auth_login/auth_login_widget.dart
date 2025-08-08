@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:go_router/go_router.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/config.dart';
 import '/pages/home/home_page/home_page_widget.dart';
 import '/auth/auth_util.dart';
 import 'auth_login_model.dart';
@@ -174,6 +177,44 @@ class _AuthLoginWidgetState extends State<AuthLoginWidget> {
                             ),
                           ),
                           const SizedBox(height: 24),
+                          // Privacy and Terms text
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: RichText(
+                              textAlign: TextAlign.center,
+                              text: TextSpan(
+                                style: FlutterFlowTheme.of(context).bodySmall.copyWith(
+                                  letterSpacing: 0.0,
+                                  color: FlutterFlowTheme.of(context).secondaryText,
+                                  height: 1.4,
+                                ),
+                                children: [
+                                  const TextSpan(text: 'By continuing, you accept our '),
+                                  TextSpan(
+                                    text: 'Privacy Policy',
+                                    style: TextStyle(
+                                      color: FlutterFlowTheme.of(context).primary,
+                                      decoration: TextDecoration.underline,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    recognizer: TapGestureRecognizer()..onTap = () => _openPrivacyPolicy(),
+                                  ),
+                                  const TextSpan(text: ' and '),
+                                  TextSpan(
+                                    text: 'Terms of Service',
+                                    style: TextStyle(
+                                      color: FlutterFlowTheme.of(context).primary,
+                                      decoration: TextDecoration.underline,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    recognizer: TapGestureRecognizer()..onTap = () => _openTermsOfService(),
+                                  ),
+                                  const TextSpan(text: '.'),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
                           FFButtonWidget(
                             onPressed: _isLoading ? null : _handleLogin,
                             text: _isLoading ? 'Sending Magic Link...' : 'Send Magic Link',
@@ -336,5 +377,110 @@ class _AuthLoginWidgetState extends State<AuthLoginWidget> {
         _successMessage = null;
       });
     }
+  }
+  
+  void _openPrivacyPolicy() {
+    _openWebView('Privacy Policy', Config.privacyUrl);
+  }
+  
+  void _openTermsOfService() {
+    _openWebView('Legal Terms', Config.termsUrl);
+  }
+  
+  void _openWebView(String title, String url) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      enableDrag: true,
+      isDismissible: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.9,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) => Container(
+          decoration: BoxDecoration(
+            color: FlutterFlowTheme.of(context).secondaryBackground,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              // Handle bar
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: FlutterFlowTheme.of(context).alternate,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              // Header
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: FlutterFlowTheme.of(context).primaryBackground,
+                  border: Border(
+                    bottom: BorderSide(
+                      color: FlutterFlowTheme.of(context).alternate,
+                      width: 1,
+                    ),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      title,
+                      style: FlutterFlowTheme.of(context).headlineSmall.copyWith(
+                        letterSpacing: 0.0,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: Icon(
+                        Icons.close,
+                        color: FlutterFlowTheme.of(context).secondaryText,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // WebView
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
+                  child: WebViewWidget(
+                    controller: WebViewController()
+                      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+                      ..setBackgroundColor(Colors.white)
+                      ..setNavigationDelegate(
+                        NavigationDelegate(
+                          onPageStarted: (String url) {
+                            print('WebView loading: $url');
+                          },
+                          onPageFinished: (String url) {
+                            print('WebView finished loading: $url');
+                          },
+                          onWebResourceError: (WebResourceError error) {
+                            print('WebView error: ${error.description}');
+                          },
+                          onNavigationRequest: (NavigationRequest request) {
+                            print('WebView navigation request: ${request.url}');
+                            return NavigationDecision.navigate;
+                          },
+                        ),
+                      )
+                      ..loadRequest(Uri.parse(url)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

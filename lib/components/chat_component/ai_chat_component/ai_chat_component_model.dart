@@ -11,8 +11,6 @@ class AiChatComponentModel extends FlutterFlowModel<AiChatComponentWidget> {
   List<ChatMessage> chatHistory = [];
   bool aiResponding = false;
   String inputContent = '';
-  UserLevel? selectedLevel;
-  bool showLevelSelector = true;
 
   ///  State fields for stateful widgets in this component.
 
@@ -48,7 +46,6 @@ class AiChatComponentModel extends FlutterFlowModel<AiChatComponentWidget> {
     
     final userMessage = ChatMessage.user(
       content: inputContent,
-      userLevel: selectedLevel,
     );
     
     chatHistory.add(userMessage);
@@ -69,18 +66,13 @@ class AiChatComponentModel extends FlutterFlowModel<AiChatComponentWidget> {
     try {
       final response = await ChatService.askQuestion(
         question: currentInput,
-        level: selectedLevel?.name ?? 'beginner',
       );
       
-      final aiMessage = ChatMessage.ai(content: response.answer);
+      final aiMessage = ChatMessage.assistant(content: response.answer);
       chatHistory.add(aiMessage);
       
-      // If this was the first message, hide level selector
-      if (showLevelSelector) {
-        showLevelSelector = false;
-      }
     } catch (e) {
-      final errorMessage = ChatMessage.ai(
+      final errorMessage = ChatMessage.assistant(
         content: "Sorry, I'm having trouble connecting right now. Please try again later.",
       );
       chatHistory.add(errorMessage);
@@ -98,8 +90,4 @@ class AiChatComponentModel extends FlutterFlowModel<AiChatComponentWidget> {
     }
   }
 
-  void selectLevel(UserLevel level) {
-    selectedLevel = level;
-    showLevelSelector = false;
-  }
 }

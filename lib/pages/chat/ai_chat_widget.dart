@@ -1,12 +1,15 @@
 import 'dart:convert';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/index.dart';
 import '/config.dart';
+import '/services/auth_service.dart';
+import '/models/chat_message.dart';
+import '/models/chat_conversation.dart';
+import '/services/chat_persistence_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:go_router/go_router.dart';
 
@@ -25,33 +28,546 @@ class _AiChatWidgetState extends State<AiChatWidget> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   bool isAwaitingResponse = false;
-  String? selectedLevel; // 'beginner' or 'expert'
+  // Suggestion prompts for new users
+  final List<String> _suggestionPrompts = [
+    "Why is my check engine light on?",
+    "How do I clear error codes?", 
+    "What does P0300 code mean?",
+  ];
+  ChatConversation? currentConversation;
+  bool isInBulkDeleteMode = false;
+  Set<String> selectedConversationsForDelete = {};
+  
+  List<ChatMessage> messages = [];
 
-  List<Map<String, dynamic>> messages = [];
+  @override
+  void initState() {
+    super.initState();
+    // Don't auto-load conversations - let user access via hamburger menu
+  }
+
+  Future<void> _loadConversation(String conversationId) async {
+    try {
+      final conversationWithMessages = await ChatPersistenceService.getConversation(conversationId);
+      setState(() {
+        currentConversation = conversationWithMessages;
+        if (conversationWithMessages.messages != null) {
+          messages = conversationWithMessages.messages!;
+        } else {
+          messages = [];
+        }
+      });
+    } catch (e) {
+      print('Error loading conversation: $e');
+    }
+  }
+
+  Future<void> _showConversationDrawer() async {
+    try {
+      final conversations = await ChatPersistenceService.getConversations();
+      
+      if (conversations.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No conversations found. Start a new chat!')),
+        );
+        return;
+      }
+
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => DraggableScrollableSheet(
+          initialChildSize: 0.7,
+          maxChildSize: 0.9,
+          minChildSize: 0.3,
+          builder: (context, scrollController) => Container(
+            decoration: BoxDecoration(
+              color: FlutterFlowTheme.of(context).primaryBackground,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Column(
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(top: 12, bottom: 20),
+                  decoration: BoxDecoration(
+                    color: FlutterFlowTheme.of(context).secondaryText,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        isInBulkDeleteMode ? 'Select Conversations' : 'Chat History',
+                        style: FlutterFlowTheme.of(context).titleLarge,
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (conversations.isNotEmpty && !isInBulkDeleteMode)
+                            PopupMenuButton<String>(
+                              onSelected: (value) async {
+                                if (value == 'bulk_delete') {
+                                  setState(() {
+                                    isInBulkDeleteMode = true;
+                                    selectedConversationsForDelete.clear();
+                                  });
+                                } else if (value == 'delete_all') {
+                                  Navigator.pop(context);
+                                  await _showDeleteAllConfirmation();
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                const PopupMenuItem(
+                                  value: 'bulk_delete',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.checklist, color: Colors.orange),
+                                      SizedBox(width: 8),
+                                      Text('Bulk Delete'),
+                                    ],
+                                  ),
+                                ),
+                                const PopupMenuItem(
+                                  value: 'delete_all',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.delete_sweep, color: Colors.red),
+                                      SizedBox(width: 8),
+                                      Text('Delete All'),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                              child: Icon(
+                                Icons.more_vert,
+                                color: FlutterFlowTheme.of(context).primaryText,
+                              ),
+                            ),
+                          IconButton(
+                            onPressed: () {
+                              if (isInBulkDeleteMode) {
+                                setState(() {
+                                  isInBulkDeleteMode = false;
+                                  selectedConversationsForDelete.clear();
+                                });
+                              } else {
+                                Navigator.pop(context);
+                              }
+                            },
+                            icon: Icon(isInBulkDeleteMode ? Icons.cancel : Icons.close),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: ListView.builder(
+                    controller: scrollController,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    itemCount: conversations.length,
+                    itemBuilder: (context, index) {
+                      final conversation = conversations[index];
+                      final isSelected = currentConversation?.id == conversation.id;
+                      
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        decoration: BoxDecoration(
+                          color: isSelected 
+                              ? FlutterFlowTheme.of(context).primary.withOpacity(0.1)
+                              : FlutterFlowTheme.of(context).secondaryBackground,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isSelected 
+                                ? FlutterFlowTheme.of(context).primary
+                                : FlutterFlowTheme.of(context).primaryBackground,
+                            width: isSelected ? 2 : 1,
+                          ),
+                        ),
+                        child: ListTile(
+                          onTap: () async {
+                            if (isInBulkDeleteMode) {
+                              setState(() {
+                                if (selectedConversationsForDelete.contains(conversation.id)) {
+                                  selectedConversationsForDelete.remove(conversation.id);
+                                } else {
+                                  selectedConversationsForDelete.add(conversation.id);
+                                }
+                              });
+                            } else {
+                              Navigator.pop(context);
+                              await _loadConversation(conversation.id);
+                            }
+                          },
+                          leading: isInBulkDeleteMode
+                              ? Checkbox(
+                                  value: selectedConversationsForDelete.contains(conversation.id),
+                                  onChanged: (bool? value) {
+                                    setState(() {
+                                      if (value == true) {
+                                        selectedConversationsForDelete.add(conversation.id);
+                                      } else {
+                                        selectedConversationsForDelete.remove(conversation.id);
+                                      }
+                                    });
+                                  },
+                                  activeColor: FlutterFlowTheme.of(context).primary,
+                                )
+                              : CircleAvatar(
+                                  backgroundColor: FlutterFlowTheme.of(context).primary,
+                                  child: Icon(
+                                    Icons.chat,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ),
+                          title: Text(
+                            conversation.title ?? 'Untitled Chat',
+                            style: FlutterFlowTheme.of(context).titleMedium,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Created: ${_formatDate(conversation.createdAt)}',
+                                style: FlutterFlowTheme.of(context).bodySmall,
+                              ),
+                            ],
+                          ),
+                          trailing: isInBulkDeleteMode
+                              ? null
+                              : Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (isSelected)
+                                      Icon(
+                                        Icons.check_circle,
+                                        color: FlutterFlowTheme.of(context).primary,
+                                        size: 20,
+                                      ),
+                                    const SizedBox(width: 8),
+                                    PopupMenuButton<String>(
+                                      onSelected: (value) async {
+                                        if (value == 'delete') {
+                                          await _deleteConversation(conversation.id);
+                                          Navigator.pop(context);
+                                          _showConversationDrawer(); // Refresh the drawer
+                                        }
+                                      },
+                                      itemBuilder: (context) => [
+                                        const PopupMenuItem(
+                                          value: 'delete',
+                                          child: Row(
+                                            children: [
+                                              Icon(Icons.delete, color: Colors.red),
+                                              SizedBox(width: 8),
+                                              Text('Delete'),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                      child: Icon(
+                                        Icons.more_vert,
+                                        color: FlutterFlowTheme.of(context).secondaryText,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      if (isInBulkDeleteMode && selectedConversationsForDelete.isNotEmpty)
+                        Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.only(bottom: 12),
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              Navigator.pop(context);
+                              await _bulkDeleteConversations();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              'Delete Selected (${selectedConversationsForDelete.length})',
+                              style: const TextStyle(color: Colors.white, fontSize: 16),
+                            ),
+                          ),
+                        ),
+                      if (!isInBulkDeleteMode)
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              _startNewConversation();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: FlutterFlowTheme.of(context).primary,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              'Start New Conversation',
+                              style: TextStyle(color: Colors.white, fontSize: 16),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading conversations: $e')),
+      );
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+  }
+
+  Future<void> _deleteConversation(String conversationId) async {
+    try {
+      await ChatPersistenceService.deleteConversation(conversationId);
+      
+      // If we're deleting the current conversation, clear it
+      if (currentConversation?.id == conversationId) {
+        setState(() {
+          currentConversation = null;
+          messages = [];
+        });
+      }
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Conversation deleted')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error deleting conversation: $e')),
+      );
+    }
+  }
+
+  void _startNewConversation() {
+    setState(() {
+      currentConversation = null;
+      messages = [];
+    });
+  }
+
+  void _clearCurrentChat() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Clear Current Chat'),
+          content: const Text('Are you sure you want to clear the current chat? This action cannot be undone.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                setState(() {
+                  messages = [];
+                  currentConversation = null;
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Chat cleared')),
+                );
+              },
+              child: const Text('Clear', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _bulkDeleteConversations() async {
+    if (selectedConversationsForDelete.isEmpty) return;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Conversations'),
+          content: Text(
+            'Are you sure you want to delete ${selectedConversationsForDelete.length} conversation(s)? This action cannot be undone.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                
+                try {
+                  // Delete each selected conversation
+                  for (String conversationId in selectedConversationsForDelete) {
+                    await ChatPersistenceService.deleteConversation(conversationId);
+                    
+                    // If we're deleting the current conversation, clear it
+                    if (currentConversation?.id == conversationId) {
+                      setState(() {
+                        currentConversation = null;
+                        messages = [];
+                      });
+                    }
+                  }
+                  
+                  setState(() {
+                    isInBulkDeleteMode = false;
+                    selectedConversationsForDelete.clear();
+                  });
+                  
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Deleted ${selectedConversationsForDelete.length} conversations')),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error deleting conversations: $e')),
+                  );
+                }
+              },
+              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showDeleteAllConfirmation() async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete All Conversations'),
+          content: const Text(
+            'Are you sure you want to delete ALL conversations? This will permanently remove all your chat history and cannot be undone.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _deleteAllConversations();
+              },
+              child: const Text('Delete All', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteAllConversations() async {
+    try {
+      final conversations = await ChatPersistenceService.getConversations();
+      
+      for (ChatConversation conversation in conversations) {
+        await ChatPersistenceService.deleteConversation(conversation.id);
+      }
+      
+      setState(() {
+        currentConversation = null;
+        messages = [];
+        isInBulkDeleteMode = false;
+        selectedConversationsForDelete.clear();
+      });
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('All conversations deleted')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error deleting all conversations: $e')),
+      );
+    }
+  }
+
+  Future<void> _createNewConversation({String? title}) async {
+    try {
+      final conversation = await ChatPersistenceService.createConversation(
+        title: title ?? 'Chat ${DateTime.now().day}/${DateTime.now().month}',
+      );
+      setState(() {
+        currentConversation = conversation;
+        messages = [];
+      });
+    } catch (e) {
+      print('Error creating conversation: $e');
+    }
+  }
 
   Future<void> sendMessage(String question) async {
-    if (selectedLevel == null) {
-      setState(() {
-        messages.add({
-          'role': 'ai',
-          'text': 'Please select your experience level before asking a question.',
-          'format': 'markdown',
-        });
-      });
-      return;
+    // Create conversation if it doesn't exist, using the question as title
+    if (currentConversation == null) {
+      // Truncate question to reasonable title length
+      final titleFromQuestion = question.length > 50 
+          ? '${question.substring(0, 47)}...'
+          : question;
+      await _createNewConversation(title: titleFromQuestion);
     }
 
+    final userMessage = ChatMessage.user(
+      content: question,
+      conversationId: currentConversation?.id,
+    );
+
     setState(() {
-      messages.add({
-        'role': 'user',
-        'text': question,
-        'format': 'plain',
-      });
+      messages.add(userMessage);
       isAwaitingResponse = true;
     });
 
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('access_token');
+    // Save user message to backend
+    if (currentConversation != null) {
+      try {
+        await ChatPersistenceService.saveMessage(
+          conversationId: currentConversation!.id,
+          message: userMessage,
+        );
+      } catch (e) {
+        print('Error saving user message: $e');
+      }
+    }
+
+    final authService = AuthService();
+    final token = await authService.getStoredToken();
     final url = Uri.parse('${Config.baseUrl}/api/chat'); // Always use /api/chat
 
     try {
@@ -63,7 +579,7 @@ class _AiChatWidgetState extends State<AiChatWidget> {
         },
         body: jsonEncode({
           'message': question,
-          'level': selectedLevel,
+          // Removed level parameter
           'context': null, // No context for regular messages
           'include_diagnostics': false,
         }),
@@ -74,32 +590,46 @@ class _AiChatWidgetState extends State<AiChatWidget> {
         final messageContent = responseData['message']['content'];
         final suggestions = responseData['suggestions'] as List<dynamic>?;
 
+        final aiMessage = ChatMessage.assistant(
+          content: messageContent,
+          conversationId: currentConversation?.id,
+          suggestions: suggestions?.cast<String>(),
+        );
+
         setState(() {
-          messages.add({
-            'role': 'ai',
-            'text': messageContent,
-            'format': 'markdown',
-            'suggestions': suggestions,
-          });
+          messages.add(aiMessage);
           isAwaitingResponse = false;
         });
+
+        // Save AI message to backend
+        if (currentConversation != null) {
+          try {
+            await ChatPersistenceService.saveMessage(
+              conversationId: currentConversation!.id,
+              message: aiMessage,
+            );
+          } catch (e) {
+            print('Error saving AI message: $e');
+          }
+        }
       } else {
+        print('Chat API Error - Status: ${response.statusCode}, Body: ${response.body}');
+        final errorMessage = ChatMessage.assistant(
+          content: '❌ Error: ${response.statusCode} ${response.reasonPhrase ?? 'Unknown error'}',
+          conversationId: currentConversation?.id,
+        );
         setState(() {
-          messages.add({
-            'role': 'ai',
-            'text': '❌ Error: ${response.statusCode} ${response.reasonPhrase ?? 'Unknown error'}',
-            'format': 'plain',
-          });
+          messages.add(errorMessage);
           isAwaitingResponse = false;
         });
       }
     } catch (e) {
+      final errorMessage = ChatMessage.assistant(
+        content: '⚠️ Network error: $e',
+        conversationId: currentConversation?.id,
+      );
       setState(() {
-        messages.add({
-          'role': 'ai',
-          'text': '⚠️ Network error: $e',
-          'format': 'plain',
-        });
+        messages.add(errorMessage);
         isAwaitingResponse = false;
       });
     }
@@ -114,7 +644,7 @@ class _AiChatWidgetState extends State<AiChatWidget> {
     );
   }
 
-  Widget _buildLevelSelector() {
+  Widget _buildSuggestionPrompts() {
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
@@ -128,73 +658,68 @@ class _AiChatWidgetState extends State<AiChatWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Select Your Experience Level',
-            style: FlutterFlowTheme.of(context).titleMedium,
-          ),
-          const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(
-                child: _buildLevelButton('beginner', 'BEGINNER', Icons.school),
+              Icon(
+                Icons.lightbulb_outline,
+                color: FlutterFlowTheme.of(context).primary,
+                size: 20,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildLevelButton('expert', 'EXPERT', Icons.engineering),
+              const SizedBox(width: 8),
+              Text(
+                'Try asking about:',
+                style: FlutterFlowTheme.of(context).titleMedium.copyWith(
+                  color: FlutterFlowTheme.of(context).primary,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _suggestionPrompts.map((prompt) => 
+              InkWell(
+                onTap: () => sendMessage(prompt),
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: FlutterFlowTheme.of(context).primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: FlutterFlowTheme.of(context).primary.withOpacity(0.3),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.chat_bubble_outline,
+                        size: 16,
+                        color: FlutterFlowTheme.of(context).primary,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        prompt,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: FlutterFlowTheme.of(context).primary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ).toList(),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildLevelButton(String level, String label, IconData icon) {
-    final isSelected = selectedLevel == level;
-    return InkWell(
-      onTap: () {
-        setState(() {
-          selectedLevel = level;
-        });
-      },
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? FlutterFlowTheme.of(context).primary
-              : FlutterFlowTheme.of(context).primaryBackground,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected
-                ? FlutterFlowTheme.of(context).primary
-                : FlutterFlowTheme.of(context).primary.withOpacity(0.3),
-          ),
-        ),
-        child: Column(
-          children: [
-            Icon(
-              icon,
-              color: isSelected
-                  ? Colors.white
-                  : FlutterFlowTheme.of(context).primary,
-              size: 24,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: FlutterFlowTheme.of(context).bodySmall.copyWith(
-                color: isSelected
-                    ? Colors.white
-                    : FlutterFlowTheme.of(context).primary,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildSuggestions(List<dynamic> suggestions) {
     return Container(
@@ -241,14 +766,14 @@ class _AiChatWidgetState extends State<AiChatWidget> {
     );
   }
 
-  Widget _buildBubble(Map<String, dynamic> message) {
-    final isUser = message['role'] == 'user';
+  Widget _buildBubble(ChatMessage message) {
+    final isUser = message.messageType == MessageType.user;
     final bgColor = isUser
         ? FlutterFlowTheme.of(context).primary
         : FlutterFlowTheme.of(context).secondaryBackground;
     final textColor = isUser ? Colors.white : Colors.white;
-    final isMarkdown = message['format'] == 'markdown';
-    final suggestions = message['suggestions'] as List<dynamic>?;
+    final isMarkdown = message.format == 'markdown';
+    final suggestions = message.suggestions;
 
     return Column(
       children: [
@@ -295,7 +820,7 @@ class _AiChatWidgetState extends State<AiChatWidget> {
                   ),
                   child: isMarkdown && !isUser
                       ? MarkdownBody(
-                          data: message['text'] ?? '',
+                          data: message.content,
                           selectable: true,
                           styleSheet: MarkdownStyleSheet(
                             p: TextStyle(color: textColor, fontSize: 15, height: 1.4),
@@ -317,7 +842,7 @@ class _AiChatWidgetState extends State<AiChatWidget> {
                           ),
                         )
                       : SelectableText(
-                          message['text'] ?? '',
+                          message.content,
                           style: TextStyle(color: textColor, fontSize: 15, height: 1.4),
                         ),
                 ),
@@ -394,16 +919,33 @@ class _AiChatWidgetState extends State<AiChatWidget> {
             ),
             Align(
               alignment: Alignment.centerRight,
-              child: InkWell(
-                onTap: () => scaffoldKey.currentState?.openDrawer(),
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: Icon(
-                    Icons.menu,
-                    color: FlutterFlowTheme.of(context).primaryText,
-                    size: 28.0,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (messages.isNotEmpty)
+                    InkWell(
+                      onTap: () => _clearCurrentChat(),
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: Icon(
+                          Icons.delete_outline,
+                          color: FlutterFlowTheme.of(context).primaryText,
+                          size: 24.0,
+                        ),
+                      ),
+                    ),
+                  InkWell(
+                    onTap: () => _showConversationDrawer(),
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: Icon(
+                        Icons.menu,
+                        color: FlutterFlowTheme.of(context).primaryText,
+                        size: 28.0,
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
           ],
@@ -417,12 +959,10 @@ class _AiChatWidgetState extends State<AiChatWidget> {
                 controller: _scrollController,
                 padding: const EdgeInsets.all(16),
                 children: [
-                  if (selectedLevel == null)
-                    _buildBubble({
-                      'role': 'ai',
-                      'text': 'Welcome! I\'m your automotive AI assistant. Please select your experience level below to get started.',
-                      'format': 'plain',
-                    }),
+                  if (messages.isEmpty)
+                    _buildBubble(ChatMessage.assistant(
+                      content: 'Welcome! I\'m your automotive AI assistant. Choose a suggestion below or ask me anything about your vehicle.',
+                    )),
                   ...messages.map(_buildBubble).toList(),
                   if (isAwaitingResponse)
                     Align(
@@ -473,7 +1013,7 @@ class _AiChatWidgetState extends State<AiChatWidget> {
                 ],
               ),
             ),
-            if (selectedLevel == null) _buildLevelSelector(),
+            if (messages.isEmpty) _buildSuggestionPrompts(),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               color: Colors.transparent,
@@ -490,9 +1030,7 @@ class _AiChatWidgetState extends State<AiChatWidget> {
                     child: TextField(
                       controller: _controller,
                       decoration: InputDecoration(
-                        hintText: selectedLevel == null
-                            ? 'Select your level first...'
-                            : 'Ask me about your vehicle...',
+                        hintText: 'Ask me about your vehicle...',
                         filled: true,
                         fillColor: FlutterFlowTheme.of(context).secondaryBackground,
                         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),

@@ -134,11 +134,11 @@ class DeepLinkService {
       if (result.success) {
         print('🎉 Magic link verification successful');
         
-        // Navigate to home page using router
+        // Navigate to name entry page using router
         if (_router != null) {
-          print('🏠 Navigating to home page...');
-          _router!.go('/home');
-          print('✅ Navigation to /home completed');
+          print('👤 Navigating to name entry page...');
+          _router!.go('/nameEntry');
+          print('✅ Navigation to /nameEntry completed');
         } else {
           print('⚠️ No router available, magic link verified but cannot navigate');
         }

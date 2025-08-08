@@ -1,49 +1,56 @@
 enum MessageType {
   user,
-  ai,
-}
-
-enum UserLevel {
-  beginner,
-  expert,
+  assistant,
+  diagnostic,
+  error,
 }
 
 class ChatMessage {
   final String id;
   final String content;
-  final MessageType type;
+  final MessageType messageType;
   final DateTime timestamp;
-  final UserLevel? userLevel;
+  final String? conversationId;
+  final List<String>? suggestions;
+  final String format;
 
   ChatMessage({
     required this.id,
     required this.content,
-    required this.type,
+    required this.messageType,
     required this.timestamp,
-    this.userLevel,
+    this.conversationId,
+    this.suggestions,
+    this.format = 'plain',
   });
 
   factory ChatMessage.user({
     required String content,
-    UserLevel? userLevel,
+    String? conversationId,
   }) {
     return ChatMessage(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       content: content,
-      type: MessageType.user,
+      messageType: MessageType.user,
       timestamp: DateTime.now(),
-      userLevel: userLevel,
+      conversationId: conversationId,
+      format: 'plain',
     );
   }
 
-  factory ChatMessage.ai({
+  factory ChatMessage.assistant({
     required String content,
+    String? conversationId,
+    List<String>? suggestions,
   }) {
     return ChatMessage(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       content: content,
-      type: MessageType.ai,
+      messageType: MessageType.assistant,
       timestamp: DateTime.now(),
+      conversationId: conversationId,
+      suggestions: suggestions,
+      format: 'markdown',
     );
   }
 
@@ -51,27 +58,28 @@ class ChatMessage {
     return {
       'id': id,
       'content': content,
-      'type': type.name,
+      'message_type': messageType.name,
       'timestamp': timestamp.toIso8601String(),
-      'userLevel': userLevel?.name,
+      'conversationId': conversationId,
+      'suggestions': suggestions,
+      'format': format,
     };
   }
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
     return ChatMessage(
-      id: json['id'] ?? '',
+      id: json['id']?.toString() ?? '',
       content: json['content'] ?? '',
-      type: MessageType.values.firstWhere(
-        (e) => e.name == json['type'],
+      messageType: MessageType.values.firstWhere(
+        (e) => e.name == json['message_type'],
         orElse: () => MessageType.user,
       ),
       timestamp: DateTime.parse(json['timestamp'] ?? DateTime.now().toIso8601String()),
-      userLevel: json['userLevel'] != null
-          ? UserLevel.values.firstWhere(
-              (e) => e.name == json['userLevel'],
-              orElse: () => UserLevel.beginner,
-            )
+      conversationId: json['conversationId']?.toString(),
+      suggestions: json['suggestions'] != null 
+          ? List<String>.from(json['suggestions'])
           : null,
+      format: json['format'] ?? 'plain',
     );
   }
 } 
