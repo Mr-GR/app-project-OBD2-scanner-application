@@ -91,7 +91,7 @@ class _ChatAiScreenWidgetState extends State<ChatAiScreenWidget> {
                         '• Engine and transmission issues\n'
                         '• Maintenance and repair guidance\n'
                         '• OBD2 scanner questions\n\n'
-                        'Select your experience level to get personalized advice.',
+                        'Ask me anything about your vehicle!',
                       ),
                       actions: [
                         TextButton(

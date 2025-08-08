@@ -10,6 +10,7 @@ import 'pages/onboarding_flow/auth_welcome/auth_welcome_screen_widget.dart';
 import 'pages/onboarding_flow/auth_login/auth_login_widget.dart';
 import 'pages/onboarding_flow/auth_create/auth_create_widget.dart';
 import 'pages/onboarding_flow/auth_forgot_password/auth_forgot_password_widget.dart';
+import 'pages/onboarding_flow/name_entry/name_entry_widget.dart';
 import 'pages/chat/ai_chat_widget.dart';
 import 'pages/chat/chat_test_widget.dart';
 import 'pages/main_tab_navigator.dart';
@@ -126,6 +127,7 @@ GoRouter createRouter() {
       print('🔐 Authentication status: $isAuthenticated');
       
       // If user is authenticated and trying to access onboarding/auth pages, redirect to home
+      // (but allow name entry page for new users)
       if (isAuthenticated && (
           state.fullPath == '/onboarding' ||
           state.fullPath == '/authWelcomeScreen' ||
@@ -147,7 +149,8 @@ GoRouter createRouter() {
           state.fullPath == '/add-vehicle' ||
           state.fullPath == '/obd2-connection' ||
           state.fullPath == '/chat' ||
-          state.fullPath == '/connection-settings'
+          state.fullPath == '/connection-settings' ||
+          state.fullPath == '/nameEntry'
         )) {
         print('❌ Unauthenticated user accessing protected page, redirecting to /onboarding');
         return '/onboarding';
@@ -178,6 +181,10 @@ GoRouter createRouter() {
       GoRoute(
         path: '/authForgotPassword',
         builder: (context, state) => const AuthForgotPasswordWidget(),
+      ),
+      GoRoute(
+        path: '/nameEntry',
+        builder: (context, state) => const NameEntryWidget(),
       ),
       // Main app routes
       GoRoute(

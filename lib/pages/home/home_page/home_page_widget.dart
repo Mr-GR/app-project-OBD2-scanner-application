@@ -2,9 +2,11 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:o_b_d2_scanner_frontend/config.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/services/vehicle_service.dart';
+import '/auth/auth_util.dart';
 
 class HomePageWidget extends StatefulWidget {
   const HomePageWidget({Key? key}) : super(key: key);
@@ -24,11 +26,16 @@ class _HomePageWidgetState extends State<HomePageWidget> {
   String? _quickChatError;
   bool _quickChatLoading = false;
   int _chatExchangeCount = 0;
+  
+  // User state
+  String? _userName;
+  bool _userLoading = true;
 
   @override
   void initState() {
     super.initState();
     _loadVehicles();
+    _loadUserData();
   }
 
   Future<void> _loadVehicles() async {
@@ -65,6 +72,46 @@ class _HomePageWidgetState extends State<HomePageWidget> {
             margin: const EdgeInsets.all(16),
           ),
         );
+      }
+    }
+  }
+
+  Future<void> _loadUserData() async {
+    setState(() {
+      _userLoading = true;
+    });
+
+    try {
+      // First try to get the name from name entry onboarding
+      final prefs = await SharedPreferences.getInstance();
+      final displayName = prefs.getString('user_display_name');
+      
+      if (displayName != null && displayName.isNotEmpty) {
+        setState(() {
+          _userName = displayName;
+          _userLoading = false;
+        });
+      } else {
+        // Fallback to user data if no display name is set
+        final userData = await AuthUtil.getCurrentUser();
+        if (mounted && userData != null) {
+          setState(() {
+            _userName = userData['name'] ?? userData['email']?.split('@')[0];
+            _userLoading = false;
+          });
+        } else {
+          setState(() {
+            _userName = null;
+            _userLoading = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _userName = null;
+          _userLoading = false;
+        });
       }
     }
   }
@@ -236,10 +283,18 @@ class _HomePageWidgetState extends State<HomePageWidget> {
         // Debug: Print the response to see the actual structure
         print('Quick Chat API Response: $data');
         
-        // Try different possible response field names and ensure they're strings
+        // Extract response text from nested structure
         String? responseText;
         
-        if (data['response'] != null) {
+        // Handle nested message structure: {message: {content: "..."}}
+        if (data['message'] != null && data['message'] is Map) {
+          final messageData = data['message'] as Map<String, dynamic>;
+          if (messageData['content'] != null) {
+            responseText = messageData['content'].toString();
+          }
+        } 
+        // Fallback to direct field access
+        else if (data['response'] != null) {
           responseText = data['response'].toString();
         } else if (data['message'] != null) {
           responseText = data['message'].toString();
@@ -318,19 +373,19 @@ class _HomePageWidgetState extends State<HomePageWidget> {
   }
 
   String _cleanResponseText(String text) {
-    // Remove common JSON wrapper patterns
     String cleaned = text.trim();
     
-    // Remove {content: "..."} pattern
+    // Remove metadata patterns like "*Not automotive: llm_classification (746.85ms)*"
+    cleaned = cleaned.replaceAll(RegExp(r'\*[^*]*:\s*[^*()]*\([^)]*\)\*'), '');
+    
+    // Remove common JSON wrapper patterns
     if (cleaned.startsWith('{content:') || cleaned.startsWith('{"content":')) {
-      // Extract content from JSON-like structure
       final contentMatch = RegExp(r'\{["\s]*content["\s]*:\s*["\s]*(.+?)["\s]*\}').firstMatch(cleaned);
       if (contentMatch != null) {
         cleaned = contentMatch.group(1) ?? cleaned;
       }
     }
     
-    // Remove {message: "..."} pattern
     if (cleaned.startsWith('{message:') || cleaned.startsWith('{"message":')) {
       final messageMatch = RegExp(r'\{["\s]*message["\s]*:\s*["\s]*(.+?)["\s]*\}').firstMatch(cleaned);
       if (messageMatch != null) {
@@ -338,7 +393,7 @@ class _HomePageWidgetState extends State<HomePageWidget> {
       }
     }
     
-    // Remove surrounding quotes if present
+    // Remove surrounding quotes
     if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
       cleaned = cleaned.substring(1, cleaned.length - 1);
     }
@@ -348,7 +403,32 @@ class _HomePageWidgetState extends State<HomePageWidget> {
     cleaned = cleaned.replaceAll('\\n', '\n');
     cleaned = cleaned.replaceAll('\\t', '\t');
     
+    // Remove all emojis and special characters
+    cleaned = _removeEmojis(cleaned);
+    
+    // Clean up extra whitespace and line breaks
+    cleaned = cleaned.replaceAll(RegExp(r'\n\s*\n\s*\n'), '\n\n'); // Remove triple+ line breaks
+    cleaned = cleaned.replaceAll(RegExp(r'^\s+', multiLine: true), ''); // Remove leading whitespace
+    
     return cleaned.trim();
+  }
+  
+  String _removeEmojis(String text) {
+    // Remove various emoji ranges and special characters
+    return text
+        .replaceAll(RegExp(r'[â¢•·◦▪▫‣⁃]'), '-') // Replace bullet point emojis with dashes
+        .replaceAll(RegExp(r'[\u{1F600}-\u{1F64F}]', unicode: true), '') // Emoticons
+        .replaceAll(RegExp(r'[\u{1F300}-\u{1F5FF}]', unicode: true), '') // Misc symbols
+        .replaceAll(RegExp(r'[\u{1F680}-\u{1F6FF}]', unicode: true), '') // Transport
+        .replaceAll(RegExp(r'[\u{1F1E0}-\u{1F1FF}]', unicode: true), '') // Flags
+        .replaceAll(RegExp(r'[\u{2600}-\u{26FF}]', unicode: true), '') // Misc symbols
+        .replaceAll(RegExp(r'[\u{2700}-\u{27BF}]', unicode: true), '') // Dingbats
+        .replaceAll(RegExp(r'[\u{E000}-\u{F8FF}]', unicode: true), '') // Private use
+        .replaceAll(RegExp(r'[\u{1F900}-\u{1F9FF}]', unicode: true), '') // Supplemental symbols
+        .replaceAll(RegExp(r'[\u{1FA00}-\u{1FA6F}]', unicode: true), '') // Chess symbols
+        .replaceAll(RegExp(r'[\u{1FA70}-\u{1FAFF}]', unicode: true), '') // Symbols and pictographs extended-A
+        .replaceAll(RegExp(r'[^\x00-\x7F]+'), '') // Remove all non-ASCII characters
+        .trim();
   }
 
   Widget _buildFormattedResponse(String response) {
@@ -468,13 +548,32 @@ class _HomePageWidgetState extends State<HomePageWidget> {
       appBar: AppBar(
         backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
         elevation: 0,
-        title: Text(
-          'Home', 
-          style: FlutterFlowTheme.of(context).titleLarge.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
+        title: _userLoading 
+          ? Text(
+              'Home', 
+              style: FlutterFlowTheme.of(context).titleLarge.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _userName != null ? 'Welcome, $_userName!' : 'Welcome!',
+                  style: FlutterFlowTheme.of(context).titleMedium.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  'Home',
+                  style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
+                    color: FlutterFlowTheme.of(context).secondaryText,
+                  ),
+                ),
+              ],
+            ),
+        centerTitle: false,
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -491,23 +590,6 @@ class _HomePageWidgetState extends State<HomePageWidget> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Welcome Card
-                Card(
-                  color: FlutterFlowTheme.of(context).secondaryBackground,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Welcome Back!', style: FlutterFlowTheme.of(context).titleLarge),
-                        const SizedBox(height: 8),
-                        Text('Ready for your next scan or chat?', style: FlutterFlowTheme.of(context).bodyMedium),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
 
                 // Carousel
                 SizedBox(

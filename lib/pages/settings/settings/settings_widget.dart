@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:go_router/go_router.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/auth/auth_util.dart';
 import 'settings_model.dart';
 export 'settings_model.dart';
 
@@ -22,12 +24,18 @@ class _SettingsWidgetState extends State<SettingsWidget> {
   bool _saveReportsLocally = true;
   String _temperatureUnit = 'Celsius';
   String _speedUnit = 'MPH';
+  
+  // User state
+  String? _userName;
+  String? _userEmail;
+  bool _userLoading = true;
 
   @override
   void initState() {
     super.initState();
     _model = createModel(context, () => SettingsModel());
     _loadSettings();
+    _loadUserData();
   }
 
   @override
@@ -52,6 +60,37 @@ class _SettingsWidgetState extends State<SettingsWidget> {
       await prefs.setBool(key, value);
     } else if (value is String) {
       await prefs.setString(key, value);
+    }
+  }
+
+  Future<void> _loadUserData() async {
+    setState(() {
+      _userLoading = true;
+    });
+
+    try {
+      final userData = await AuthUtil.getCurrentUser();
+      if (mounted && userData != null) {
+        setState(() {
+          _userName = userData['name'];
+          _userEmail = userData['email'];
+          _userLoading = false;
+        });
+      } else {
+        setState(() {
+          _userName = null;
+          _userEmail = null;
+          _userLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _userName = null;
+          _userEmail = null;
+          _userLoading = false;
+        });
+      }
     }
   }
 
@@ -80,6 +119,65 @@ class _SettingsWidgetState extends State<SettingsWidget> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // User Profile Section
+                  if (!_userLoading) ...[
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      margin: const EdgeInsets.only(bottom: 24),
+                      decoration: BoxDecoration(
+                        color: FlutterFlowTheme.of(context).secondaryBackground,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            blurRadius: 3,
+                            color: FlutterFlowTheme.of(context).alternate.withValues(alpha: 0.5),
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              color: FlutterFlowTheme.of(context).primary,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.person,
+                              color: Colors.white,
+                              size: 30,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _userName ?? 'User',
+                                  style: FlutterFlowTheme.of(context).titleMedium.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                if (_userEmail != null) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    _userEmail!,
+                                    style: FlutterFlowTheme.of(context).bodyMedium.copyWith(
+                                      color: FlutterFlowTheme.of(context).secondaryText,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   // Scanner Settings
                   _buildSettingsSection('Scanner Settings', [
                     _buildSwitchItem(
@@ -128,6 +226,17 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                         setState(() => _speedUnit = value!);
                         _saveSetting('speed_unit', value);
                       },
+                    ),
+                  ]),
+                  const SizedBox(height: 16),
+                  
+                  // Account
+                  _buildSettingsSection('Account', [
+                    _buildActionItem(
+                      'Sign Out',
+                      'Sign out of your account',
+                      Icons.logout,
+                      () => _showSignOutConfirmation(),
                     ),
                   ]),
                   const SizedBox(height: 16),
@@ -275,5 +384,52 @@ class _SettingsWidgetState extends State<SettingsWidget> {
         ],
       ),
     );
+  }
+
+  void _showSignOutConfirmation() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Sign Out'),
+        content: const Text('Are you sure you want to sign out of your account?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context); // Close dialog
+              await _performSignOut();
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: const Text('Sign Out'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _performSignOut() async {
+    try {
+      // Show loading indicator
+      _showSnackBar('Signing out...', FlutterFlowTheme.of(context).primary);
+      
+      // Perform sign out
+      await AuthUtil.signOut();
+      
+      // Navigate to onboarding screen
+      if (mounted) {
+        context.go('/onboarding');
+      }
+    } catch (e) {
+      // Show error message
+      _showSnackBar(
+        'Error signing out. Please try again.',
+        Colors.red,
+      );
+    }
   }
 }

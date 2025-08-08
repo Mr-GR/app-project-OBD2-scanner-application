@@ -8,7 +8,9 @@ export '/pages/home/home_page/home_page_widget.dart' show HomePageWidget;
 export '/test/test_widget.dart' show TestWidget;
 
 // Export models
-export '/models/chat_message.dart' show ChatMessage, MessageType, UserLevel;
+export '/models/chat_message.dart' show ChatMessage, MessageType;
+export '/models/chat_conversation.dart' show ChatConversation;
 
 // Export services
 export '/services/chat_service.dart' show ChatService, ChatResponse;
+export '/services/chat_persistence_service.dart' show ChatPersistenceService;
